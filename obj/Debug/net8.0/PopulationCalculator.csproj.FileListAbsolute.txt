@@ -1,0 +1,14 @@
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.AssemblyInfoInputs.cache
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.AssemblyInfo.cs
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.csproj.CoreCompileInputs.cache
+C:\Filipe\FODD\Scripts\PopulationCalculator\bin\Debug\net8.0\PopulationCalculator.exe
+C:\Filipe\FODD\Scripts\PopulationCalculator\bin\Debug\net8.0\PopulationCalculator.deps.json
+C:\Filipe\FODD\Scripts\PopulationCalculator\bin\Debug\net8.0\PopulationCalculator.runtimeconfig.json
+C:\Filipe\FODD\Scripts\PopulationCalculator\bin\Debug\net8.0\PopulationCalculator.dll
+C:\Filipe\FODD\Scripts\PopulationCalculator\bin\Debug\net8.0\PopulationCalculator.pdb
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.dll
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\refint\PopulationCalculator.dll
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.pdb
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.genruntimeconfig.cache
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\ref\PopulationCalculator.dll
