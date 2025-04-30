@@ -12,3 +12,4 @@ C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\refint\PopulationCa
 C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.pdb
 C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.genruntimeconfig.cache
 C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\ref\PopulationCalculator.dll
+C:\Filipe\FODD\Scripts\PopulationCalculator\obj\Debug\net8.0\PopulationCalculator.sourcelink.json

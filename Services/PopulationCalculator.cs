@@ -12,6 +12,8 @@ namespace PopulationCalculator.Services
         private readonly double ModernPopulation;
         private readonly double OtlMaxPopulation;
 
+        private readonly NumberFormatInfo nfi = new NumberFormatInfo { NumberDecimalSeparator = ",", NumberGroupSeparator = "." };
+
         public PopulationCalculator(
             double initialPopulation1945,
             double modernPopulation,
@@ -45,42 +47,36 @@ namespace PopulationCalculator.Services
             List<(int years, double rateModifier, int popChange)>? ghoulPeriods = null)
         {
             var results = new List<string>();
-            var periods = preWarPeriods ?? DefaultPreWarPeriods;
-            
-            // Calculate all pre-war populations first for validation
-            var preWarPops = PopulationFormulas.PreWarFormulas
-                .Select(f => CalculatePreWarPopulation(InitialPopulation1945, f.Value, periods))
-                .ToList();
+            var validationResults = new List<(double pop, string reason)>();
 
+            // Process all formulas first, storing validation results
             foreach (var formula in PopulationFormulas.PreWarFormulas)
             {
-                var preWarPop = CalculatePreWarPopulation(InitialPopulation1945, formula.Value, periods);
-                var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, preWarPops);
-                
-                results.Add($"\nFormula: {formula.Key}");
-                results.Add($"Pre-war population: {preWarPop:N0}");
-                results.Add($"Validation Status:");
-                results.Add($"  {reason.Replace("\n", "\n  ")}");  // Indent multiple lines
-                
+                // Calculate pre-war population
+                double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, formula.Value, preWarPeriods ?? DefaultPreWarPeriods);
+
+                // Validate but don't apply Red Rule yet
+                var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, new List<double>());
+                validationResults.Add((preWarPop, reason));
+
                 if (validatedPop > 0)
                 {
+                    // Output formula results as normal if valid
+                    results.Add($"\nFormula: {formula.Key}");
+                    results.Add($"Pre-war population: {preWarPop:N0}");
+                    results.Add($"Validation Status:");
+                    results.Add($"  {reason.Replace("\n", "\n  ")}");  // Indent multiple lines
+
                     results.Add($"Final pre-war population: {validatedPop:N0}");
-                    
+
                     // Create list to store Base MP values
                     var baseMpValues = new List<decimal>();
-
-                    // Create NumberFormatInfo once for all formatting
-                    var nfi = new NumberFormatInfo
-                    {
-                        NumberDecimalSeparator = ",",
-                        NumberGroupSeparator = "."
-                    };
 
                     // KEOFF calculations with maximum precision
                     decimal preWarPopDecimal = (decimal)validatedPop;
                     var keoffRate = CalculateKeoffRate(preWarPopDecimal);
                     decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
-                    
+
                     results.Add($"KEOFF death rate: {keoffRate:P3}");
                     results.Add($"Surviving population: {survivingPop:N4}");
 
@@ -95,61 +91,61 @@ namespace PopulationCalculator.Services
                     // FYOC calculations with precision
                     var fyocLossRate = CalculateFyocLossRate((double)survivingPop);
                     decimal postFyocPop = survivingPop * (1M - (decimal)fyocLossRate);
-                    
+
                     results.Add($"FYOC loss rate: {fyocLossRate:P1}");
                     results.Add($"Post-FYOC population: {postFyocPop:N6}");  // Show 6 decimal places
 
                     // Post-war calculations
                     results.Add("\nPost-War Population Projections:");
-                    
+
                     foreach (var postFormula in PopulationFormulas.PostApocFormulas)
                     {
                         var postPeriods = postWarPeriods ?? DefaultPostWarPeriods;
-                        var finalPop = CalculatePostWarPopulation(
-                            (double)postFyocPop, 
-                            postFormula.Value,
-                            formula.Value,
-                            postPeriods
-                        );
-                        
-                        if (double.IsNaN(finalPop) && postFormula.Value < 0)
+                        double finalPop;
+
+                        if (postFormula.Value < 0)
                         {
-                            // Calculate with correct base rate
+                            // For negative rates, calculate direct reduction from post-FYOC population
                             double reduction = Math.Abs(postFormula.Value);
-                            double actualRate = formula.Value * (1 - reduction);
-                            var matchingFormula = PopulationFormulas.PostApocFormulas
-                                .First(f => f.Value > 0 && Math.Abs(f.Value - actualRate) < 0.0001);
-                            results.Add($"    {postFormula.Key,-15} : Same as {matchingFormula.Key} formula");
+                            finalPop = (double)postFyocPop * (1 - reduction);
                         }
                         else
                         {
-                            // Calculate manpower values with consistent precision
-                            decimal baseManpower = (decimal)(finalPop / 10.0);
-                            baseMpValues.Add(baseManpower); // Store Base MP value
-
-                            int onMapMp = (int)(baseManpower / 1000.0M);
-                            decimal fullThousands = baseManpower / 1000.0M;
-                            decimal offMapMp = fullThousands - Math.Floor(fullThousands);
-                            decimal dailyOffMapMp = offMapMp / 100.0M;
-
-                            // Format outputs
-                            string formattedPop = finalPop.ToString("#,##0.000000", nfi);
-                            string formattedBase = baseManpower.ToString("#,##0.000000", nfi);
-
-                            // Format off-map values without rounding
-                            var offMapStr = offMapMp.ToString(nfi).TrimStart('0').TrimStart(',');
-                            var dailyStr = dailyOffMapMp.ToString(nfi).TrimStart('0').TrimStart(',');
-
-                            // Ensure consistent precision - 6 for off-map, 8 for daily
-                            string formattedOffMap = $"0,{offMapStr.Substring(0, Math.Min(6, offMapStr.Length))}";
-                            string formattedDaily = $"0,{dailyStr.Substring(0, Math.Min(8, dailyStr.Length))}";
-
-                            results.Add($"    {postFormula.Key,-15} : {formattedPop}");
-                            results.Add($"        - Base MP       : {formattedBase}");
-                            results.Add($"        - On-map MP     : {onMapMp}");
-                            results.Add($"        - Off-map MP    : {formattedOffMap}");
-                            results.Add($"        - Daily Off-map : {formattedDaily}");
+                            // For positive rates, use normal post-war calculation
+                            finalPop = CalculatePostWarPopulation(
+                                (double)postFyocPop,
+                                postFormula.Value,
+                                formula.Value,
+                                postPeriods
+                            );
                         }
+
+                        // Regular calculation code continues...
+                        decimal baseManpower = (decimal)(finalPop / 10.0);
+                        baseMpValues.Add(baseManpower); // Store Base MP value
+
+                        int onMapMp = (int)(baseManpower / 1000.0M);
+                        decimal fullThousands = baseManpower / 1000.0M;
+                        decimal offMapMp = fullThousands - Math.Floor(fullThousands);
+                        decimal dailyOffMapMp = offMapMp / 100.0M;
+
+                        // Format outputs
+                        string formattedPop = finalPop.ToString("#,##0.000000", nfi);
+                        string formattedBase = baseManpower.ToString("#,##0.000000", nfi);
+
+                        // Format off-map values without rounding
+                        var offMapStr = offMapMp.ToString(nfi).TrimStart('0').TrimStart(',');
+                        var dailyStr = dailyOffMapMp.ToString(nfi).TrimStart('0').TrimStart(',');
+
+                        // Ensure consistent precision - 6 for off-map, 8 for daily
+                        string formattedOffMap = $"0,{offMapStr.Substring(0, Math.Min(6, offMapStr.Length))}";
+                        string formattedDaily = $"0,{dailyStr.Substring(0, Math.Min(8, dailyStr.Length))}";
+
+                        results.Add($"    {postFormula.Key,-15} : {formattedPop}");
+                        results.Add($"        - Base MP       : {formattedBase}");
+                        results.Add($"        - On-map MP     : {onMapMp}");
+                        results.Add($"        - Off-map MP    : {formattedOffMap}");
+                        results.Add($"        - Daily Off-map : {formattedDaily}");
                     }
 
                     // Add statistics after all formulas have been processed
@@ -183,7 +179,131 @@ namespace PopulationCalculator.Services
                     results.Add("----------------------------------------");
                 }
             }
-            
+
+            // After all formulas, check if Red Rule should be applied
+            if (!validationResults.Any(r => r.pop <= OtlMaxPopulation * 10 && r.pop > OtlMaxPopulation))
+            {
+                double redRulePop = OtlMaxPopulation * 5;
+                var baseMpValues = new List<decimal>();
+
+                // Calculate 1945-2077 growth rate
+                double growthRate = (Math.Pow((redRulePop / InitialPopulation1945), 1.0 / 132) - 1);
+                double yearlyPercentage = growthRate * 100;
+
+                // Add headers with growth rate prominently displayed
+                results.Add("\nRed Rule Corollary Formula");
+                results.Add($"All pre-war populations were invalid.");
+                results.Add($"Using 5x OTL Max instead: {redRulePop.ToString("#,##0.000000", nfi)}");
+                results.Add($"Pre-war yearly growth rate: {yearlyPercentage:N3}%"); // Added this line
+                results.Add($"Final pre-war population: {redRulePop.ToString("#,##0.000000", nfi)}");
+
+                // KEOFF calculations
+                decimal preWarPopDecimal = (decimal)redRulePop;
+                var keoffRate = CalculateKeoffRate(preWarPopDecimal);
+                decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
+
+                results.Add($"KEOFF death rate: {keoffRate:P3}");
+                results.Add($"Surviving population: {survivingPop:N4}");
+
+                // Calculate Ghoul population
+                decimal initialGhoulPop = survivingPop * 0.40M; // 40% of KEOFF survivors
+                double finalGhoulPop = CalculateGhoulPopulation(
+                    (double)initialGhoulPop,
+                    -0.001, // -0.1% yearly decline
+                    ghoulPeriods ?? DefaultGhoulPeriods
+                );
+
+                // FYOC calculations
+                var fyocLossRate = CalculateFyocLossRate((double)survivingPop);
+                decimal postFyocPop = survivingPop * (1M - (decimal)fyocLossRate);
+
+                results.Add($"FYOC loss rate: {fyocLossRate:P1}");
+                results.Add($"Post-FYOC population: {postFyocPop:N6}");
+                results.Add("");
+
+                results.Add("Post-War Population Projections:");
+
+                foreach (var postFormula in PopulationFormulas.PostApocFormulas)
+                {
+                    var postPeriods = postWarPeriods ?? DefaultPostWarPeriods;
+                    double finalPop;
+
+                    if (postFormula.Value < 0)
+                    {
+                        // For negative rates, use calculated pre-war rate
+                        finalPop = CalculatePostWarPopulation(
+                            (double)postFyocPop,
+                            postFormula.Value,
+                            growthRate,
+                            postPeriods
+                        );
+                    }
+                    else
+                    {
+                        // For positive rates, continue using normal calculation
+                        finalPop = CalculatePostWarPopulation(
+                            (double)postFyocPop,
+                            postFormula.Value,
+                            0,  // Don't use pre-war rate for positive formulas
+                            postPeriods
+                        );
+                    }
+
+                    // Regular calculation code continues...
+                    decimal baseManpower = (decimal)(finalPop / 10.0);
+                    baseMpValues.Add(baseManpower);
+
+                    int onMapMp = (int)(baseManpower / 1000.0M);
+                    decimal fullThousands = baseManpower / 1000.0M;
+                    decimal offMapMp = fullThousands - Math.Floor(fullThousands);
+                    decimal dailyOffMapMp = offMapMp / 100.0M;
+
+                    string formattedPop = finalPop.ToString("#,##0.000000", nfi);
+                    string formattedBase = baseManpower.ToString("#,##0.000000", nfi);
+
+                    var offMapStr = offMapMp.ToString(nfi).TrimStart('0').TrimStart(',');
+                    var dailyStr = dailyOffMapMp.ToString(nfi).TrimStart('0').TrimStart(',');
+
+                    string formattedOffMap = $"0,{offMapStr.Substring(0, Math.Min(6, offMapStr.Length))}";
+                    string formattedDaily = $"0,{dailyStr.Substring(0, Math.Min(8, dailyStr.Length))}";
+
+                    results.Add($"    {postFormula.Key,-15} : {formattedPop}");
+                    results.Add($"        - Base MP       : {formattedBase}");
+                    results.Add($"        - On-map MP     : {onMapMp}");
+                    results.Add($"        - Off-map MP    : {formattedOffMap}");
+                    results.Add($"        - Daily Off-map : {formattedDaily}");
+                }
+
+                // Add Base MP Statistics
+                if (baseMpValues.Any())
+                {
+                    decimal average = baseMpValues.Average();
+                    decimal median = CalculateMedian(baseMpValues);
+
+                    results.Add($"\nBase MP Statistics for this Pre-War Formula:");
+                    results.Add($"    Average: {average.ToString("#,##0.000000", nfi)}");
+                    results.Add($"    Median : {median.ToString("#,##0.000000", nfi)}");
+                    results.Add("");
+
+                    // Add Ghoul statistics
+                    decimal ghoulOffMapMP = (decimal)(finalGhoulPop / 10000.0);
+                    decimal ghoulDailyMP = ghoulOffMapMP / 100.0M;
+
+                    results.Add($"\nGhoul MP Statistics:");
+                    results.Add($"    Initial Population: {initialGhoulPop.ToString("#,##0.000000", nfi)}");
+                    results.Add($"    Final Population : {finalGhoulPop.ToString("#,##0.000000", nfi)}");
+
+                    string formattedGhoulMP = ghoulOffMapMP.ToString("#,##0.000000", nfi);
+                    string formattedGhoulDaily = $"0,{ghoulDailyMP.ToString(nfi).Split(',')[1].Substring(0, 8)}";
+
+                    results.Add($"    Off-map MP       : {formattedGhoulMP}");
+                    results.Add($"    Daily Off-map    : {formattedGhoulDaily}");
+                    results.Add("");
+                }
+
+                results.Add("----------------------------------------");
+            }
+
             return results;
         }
 
@@ -362,6 +482,36 @@ namespace PopulationCalculator.Services
                 return (sortedValues[count / 2 - 1] + sortedValues[count / 2]) / 2;
             else
                 return sortedValues[count / 2];
+        }
+
+        private void CalculatePostWarProjections(List<string> results, double population, List<(int years, double rateModifier, int popChange)> periods)
+        {
+            // Placeholder for additional post-war projections logic
+        }
+
+        private void CalculateGhoulStats(List<string> results, double population, List<(int years, double rateModifier, int popChange)> periods)
+        {
+            // Placeholder for additional ghoul stats calculation logic
+        }
+
+        private void CalculateAndOutputProjections(List<string> results, double postFyocPop)
+        {
+            // Placeholder for additional post-war projections logic
+        }
+
+        private void CalculateAndOutputMPStats(List<string> results, double postFyocPop)
+        {
+            // Placeholder for additional MP statistics logic
+        }
+
+        private void CalculateGhoulStatistics(List<string> results, double redRulePop, List<(int years, double rateModifier, int popChange)> ghoulPeriods)
+        {
+            // Placeholder for additional ghoul statistics logic
+        }
+
+        private void CalculateAndAddGhoulStats(List<string> results, double redRulePop, List<(int years, double rateModifier, int popChange)> ghoulPeriods)
+        {
+            // Placeholder for additional ghoul statistics logic
         }
     }
 }
