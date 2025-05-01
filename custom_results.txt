@@ -1,639 +1,98 @@
 
+Formula: 0.25% formula
+Pre-war population: 204.090
+Validation Status:
+  FAILED Rule 1: Population 204.090 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 0.5% formula
+Pre-war population: 279.334
+Validation Status:
+  FAILED Rule 1: Population 279.334 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 0.75% formula
+Pre-war population: 382.026
+Validation Status:
+  FAILED Rule 1: Population 382.026 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 1% formula
+Pre-war population: 522.075
+Validation Status:
+  FAILED Rule 1: Population 522.075 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 1.10% formula
+Pre-war population: 591.421
+Validation Status:
+  FAILED Rule 1: Population 591.421 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 1.25% formula
+Pre-war population: 712.925
+Validation Status:
+  FAILED Rule 1: Population 712.925 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 1.5% formula
+Pre-war population: 972.810
+Validation Status:
+  FAILED Rule 1: Population 972.810 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 1.75% formula
+Pre-war population: 1.326.436
+Validation Status:
+  FAILED Rule 1: Population 1.326.436 must be larger than OTL Max 3.194.176
+----------------------------------------
+
+Formula: 2% formula
+Pre-war population: 1.807.261
+Validation Status:
+  FAILED Rule 1: Population 1.807.261 must be larger than OTL Max 3.194.176
+----------------------------------------
+
 Formula: 46-60 formula
 Pre-war population: 44.339.903
 Validation Status:
-  RED RULE COROLLARY: Population 44.339.903 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 44.339.903 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Formula: 46-70 formula
 Pre-war population: 64.611.179
 Validation Status:
-  RED RULE COROLLARY: Population 64.611.179 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 64.611.179 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Formula: 50-60 formula
 Pre-war population: 182.231.561
 Validation Status:
-  RED RULE COROLLARY: Population 182.231.561 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 182.231.561 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Formula: 55-65 formula
 Pre-war population: 719.493.517
 Validation Status:
-  RED RULE COROLLARY: Population 719.493.517 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 719.493.517 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Formula: 50-70 formula
 Pre-war population: 145.437.432
 Validation Status:
-  RED RULE COROLLARY: Population 145.437.432 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 145.437.432 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Formula: 60-70 formula
 Pre-war population: 100.500.749
 Validation Status:
-  RED RULE COROLLARY: Population 100.500.749 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 100.500.749 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Formula: 70-80s formula
 Pre-war population: 60.688.461
 Validation Status:
-  RED RULE COROLLARY: Population 60.688.461 exceeds 10x OTL Max.
-  Using 5x OTL Max instead: 15.970.880
-Final pre-war population: 15.970.880
-KEOFF death rate: 99,150%
-Surviving population: 135.752,4800
-FYOC loss rate: 78,0%
-Post-FYOC population: 29.865,545600
-
-Post-War Population Projections:
-    0.25% formula   : 46.239,318379
-        - Base MP       : 4.623,931838
-        - On-map MP     : 4
-        - Off-map MP    : 0,623931
-        - Daily Off-map : 0,00623931
-    0.5% formula    : 71.061,704714
-        - Base MP       : 7.106,170471
-        - On-map MP     : 7
-        - Off-map MP    : 0,106170
-        - Daily Off-map : 0,00106170
-    0.75% formula   : 109.121,408048
-        - Base MP       : 10.912,140805
-        - On-map MP     : 10
-        - Off-map MP    : 0,912140
-        - Daily Off-map : 0,00912140
-    1% formula      : 167.421,213507
-        - Base MP       : 16.742,121351
-        - On-map MP     : 16
-        - Off-map MP    : 0,742121
-        - Daily Off-map : 0,00742121
-    1.10% formula   : 198.637,771820
-        - Base MP       : 19.863,777182
-        - On-map MP     : 19
-        - Off-map MP    : 0,863777
-        - Daily Off-map : 0,00863777
-    1.25% formula   : 256.636,976449
-        - Base MP       : 25.663,697645
-        - On-map MP     : 25
-        - Off-map MP    : 0,663697
-        - Daily Off-map : 0,00663697
-    1.5% formula    : 393.027,419007
-        - Base MP       : 39.302,741901
-        - On-map MP     : 39
-        - Off-map MP    : 0,302741
-        - Daily Off-map : 0,00302741
-    1.75% formula   : 601.328,177331
-        - Base MP       : 60.132,817733
-        - On-map MP     : 60
-        - Off-map MP    : 0,132817
-        - Daily Off-map : 0,00132817
-    2% formula      : 919.132,863148
-        - Base MP       : 91.913,286315
-        - On-map MP     : 91
-        - Off-map MP    : 0,913286
-        - Daily Off-map : 0,00913286
-    -12% formula    : 26.281,680128
-        - Base MP       : 2.628,168013
-        - On-map MP     : 2
-        - Off-map MP    : 0,628168
-        - Daily Off-map : 0,00628168
-    -25% formula    : 22.399,159200
-        - Base MP       : 2.239,915920
-        - On-map MP     : 2
-        - Off-map MP    : 0,239915
-        - Daily Off-map : 0,00239915
-    -50% formula    : 14.932,772800
-        - Base MP       : 1.493,277280
-        - On-map MP     : 1
-        - Off-map MP    : 0,493277
-        - Daily Off-map : 0,00493277
-    -75% formula    : 7.466,386400
-        - Base MP       : 746,638640
-        - On-map MP     : 0
-        - Off-map MP    : 0,746638
-        - Daily Off-map : 0,00746638
-
-Base MP Statistics for this Pre-War Formula:
-    Average: 21.797,591161
-    Median : 10.912,140805
-
-
-Ghoul MP Statistics:
-    Initial Population: 54.300,992000
-    Final Population : 46.119,323224
-    Off-map MP       : 4,611932
-    Daily Off-map    : 0,04611932
-
+  FAILED Rule 2: Population 60.688.461 exceeds 5x OTL Max (15.970.880)
 ----------------------------------------
 
 Red Rule Corollary Formula

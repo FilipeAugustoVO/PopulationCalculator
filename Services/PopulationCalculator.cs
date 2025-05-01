@@ -47,26 +47,30 @@ namespace PopulationCalculator.Services
             List<(int years, double rateModifier, int popChange)>? ghoulPeriods = null)
         {
             var results = new List<string>();
-            var validationResults = new List<(double pop, string reason)>();
+            var validationResults = new List<(double validatedPop, string reason)>();
 
-            // Process all formulas first, storing validation results
+            // Inside the formula loop
             foreach (var formula in PopulationFormulas.PreWarFormulas)
             {
                 // Calculate pre-war population
                 double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, formula.Value, preWarPeriods ?? DefaultPreWarPeriods);
 
-                // Validate but don't apply Red Rule yet
-                var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, new List<double>());
-                validationResults.Add((preWarPop, reason));
+                // Add formula header and pre-war population regardless of validation
+                results.Add($"\nFormula: {formula.Key}");
+                results.Add($"Pre-war population: {preWarPop:N0}");
 
+                // Validate and store result
+                var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, new List<double>());
+                validationResults.Add((validatedPop, reason));
+
+                // Show validation status for all formulas
+                results.Add($"Validation Status:");
+                results.Add($"  {reason.Replace("\n", "\n  ")}");
+
+                // Only continue with calculations if formula passed validation
                 if (validatedPop > 0)
                 {
                     // Output formula results as normal if valid
-                    results.Add($"\nFormula: {formula.Key}");
-                    results.Add($"Pre-war population: {preWarPop:N0}");
-                    results.Add($"Validation Status:");
-                    results.Add($"  {reason.Replace("\n", "\n  ")}");  // Indent multiple lines
-
                     results.Add($"Final pre-war population: {validatedPop:N0}");
 
                     // Create list to store Base MP values
@@ -175,13 +179,13 @@ namespace PopulationCalculator.Services
                         results.Add($"    Daily Off-map    : {formattedGhoulDaily}");
                         results.Add("");
                     }
-
-                    results.Add("----------------------------------------");
                 }
+
+                results.Add("----------------------------------------");
             }
 
             // After all formulas, check if Red Rule should be applied
-            if (!validationResults.Any(r => r.pop <= OtlMaxPopulation * 10 && r.pop > OtlMaxPopulation))
+            if (validationResults.All(r => r.validatedPop == 0)) // Check validatedPop instead of pop
             {
                 double redRulePop = OtlMaxPopulation * 5;
                 var baseMpValues = new List<decimal>();
@@ -438,38 +442,19 @@ namespace PopulationCalculator.Services
         {
             // Rule 1: Must be larger than OTL Max
             if (preWarPop <= OtlMaxPopulation)
+            {
                 return (0, $"FAILED Rule 1: Population {preWarPop:N0} must be larger than OTL Max {OtlMaxPopulation:N0}");
+            }
 
             // Rule 2: Must be between OTL Max and 5x OTL Max
             double maxAllowed = OtlMaxPopulation * 5;
             if (preWarPop <= maxAllowed)
-                return (preWarPop, $"PASSED: Population {preWarPop:N0} is within acceptable range ({OtlMaxPopulation:N0} to {maxAllowed:N0})");
-
-            // Red Rule Check: Are there any valid populations?
-            bool anyValidPopulations = allPreWarPops.Any(pop => pop > OtlMaxPopulation && pop <= maxAllowed);
-            
-            if (!anyValidPopulations)
             {
-                // Try multipliers from 6x to 10x
-                for (int multiplier = 6; multiplier <= 10; multiplier++)
-                {
-                    double currentMax = OtlMaxPopulation * multiplier;
-                    if (preWarPop <= currentMax)
-                        return (preWarPop, 
-                            $"RED RULE APPLIED: No valid populations under 5x. Using {multiplier}x multiplier.\n" +
-                            $"Population {preWarPop:N0} is within {multiplier}x limit ({currentMax:N0})");
-                }
-
-                // Beyond 10x, use Red Rule Corollary
-                return (OtlMaxPopulation * 5, 
-                    $"RED RULE COROLLARY: Population {preWarPop:N0} exceeds 10x OTL Max.\n" +
-                    $"Using 5x OTL Max instead: {maxAllowed:N0}");
+                return (preWarPop, $"PASSED: Population {preWarPop:N0} is within acceptable range ({OtlMaxPopulation:N0} to {maxAllowed:N0})");
             }
 
-            // Some populations are valid, so this one is invalid
-            return (0, 
-                $"FAILED Rule 2: Population {preWarPop:N0} exceeds 5x OTL Max ({maxAllowed:N0})\n" +
-                "Other valid populations exist, so Red Rule does not apply");
+            // If above 5x OTL Max, show the failure but return 0 to trigger Red Rule
+            return (0, $"FAILED Rule 2: Population {preWarPop:N0} exceeds 5x OTL Max ({maxAllowed:N0})");
         }
 
         private decimal CalculateMedian(List<decimal> values)
