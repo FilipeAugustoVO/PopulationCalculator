@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PopulationCalculator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+75972df389b488e7472ba019a635e7605a10d0c1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+07327a8ad5897d17d12177e3ed881e4a187de261")]
 [assembly: System.Reflection.AssemblyProductAttribute("PopulationCalculator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PopulationCalculator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
