@@ -22,12 +22,12 @@ namespace PopulationCalculator.Models
         public bool UseCustomGhoulPeriods { get; set; }
 
         // Custom Periods
-        public List<(int years, double rateModifier)> CustomPreWarPeriods { get; set; }
-        public List<(int years, double rateModifier, int popChange)> CustomPostWarPeriods { get; set; }
-        public List<(int years, double rateModifier, int popChange)> CustomGhoulPeriods { get; set; }
+        public required List<Period> CustomPreWarPeriods { get; set; }
+        public required List<Period> CustomPostWarPeriods { get; set; }
+        public required List<Period> CustomGhoulPeriods { get; set; }
 
         // Output Settings
-        public string CustomOutputFile { get; set; }
-        public string DefaultOutputFile { get; set; }
+        public required string CustomOutputFile { get; set; }
+        public required string DefaultOutputFile { get; set; }
     }
 }

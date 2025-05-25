@@ -3,8 +3,7 @@ namespace PopulationCalculator.Models
     public class StateSettings
     {
         // Basic properties
-        public string StateName { get; set; }
-        public string Region { get; set; }
+        public required string StateName { get; set; }
         public bool IsOffMap { get; set; }
         public double InitialPopulation1945 { get; set; }
         public double ModernPopulation { get; set; }
@@ -23,15 +22,8 @@ namespace PopulationCalculator.Models
         public bool UseCustomPreWarPeriods { get; set; }
         public bool UseCustomPostWarPeriods { get; set; }
         public bool UseCustomGhoulPeriods { get; set; }
-        public List<(int years, double rateModifier)> PreWarPeriods { get; set; }
-        public List<(int years, double rateModifier, int popChange)> PostWarPeriods { get; set; }
-        public List<(int years, double rateModifier, int popChange)> GhoulPeriods { get; set; }
-
-        public StateSettings()
-        {
-            PreWarPeriods = new List<(int, double)>();
-            PostWarPeriods = new List<(int, double, int)>();
-            GhoulPeriods = new List<(int, double, int)>();
-        }
+        public List<(int years, double rateModifier)> PreWarPeriods { get; set; } = new();
+        public List<(int years, double rateModifier, double popChange)> PostWarPeriods { get; set; } = new();
+        public List<(int years, double rateModifier, double popChange)> GhoulPeriods { get; set; } = new();
     }
 }

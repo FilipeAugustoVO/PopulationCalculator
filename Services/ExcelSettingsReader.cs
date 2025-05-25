@@ -8,9 +8,15 @@ namespace PopulationCalculator.Services
     {
         private static readonly CultureInfo ParsingCulture = CultureInfo.InvariantCulture;
 
-        public static List<StateSettings> ReadStateSettings(string filePath)
+#pragma warning disable CS0618
+        static ExcelSettingsReader()
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        }
+#pragma warning restore CS0618
+
+        public static List<StateSettings> ReadStateSettings(string filePath)
+        {
             var states = new List<StateSettings>();
             
             if (!File.Exists(filePath))
@@ -31,41 +37,31 @@ namespace PopulationCalculator.Services
                     var stateName = statesSheet.Cells[row, 1].GetValue<string>();
                     var state = new StateSettings
                     {
-                        StateName = stateName,
-                        Region = statesSheet.Cells[row, 2].GetValue<string>(),
-                        IsOffMap = statesSheet.Cells[row, 3].GetValue<string>()?.ToLower() == "off-map",
-                        InitialPopulation1945 = GetValidDouble(statesSheet.Cells[row, 4], "1945 population", stateName),
-                        ModernPopulation = statesSheet.Cells[row, 5].GetValue<double>(),
-                        OtlMaxPopulation = GetValidDouble(statesSheet.Cells[row, 6], "OTL Max population", stateName),
+                        StateName = statesSheet.Cells[row, 1].Text,
+                        IsOffMap = bool.Parse(statesSheet.Cells[row, 2].Text),
+                        InitialPopulation1945 = GetValidDouble(statesSheet.Cells[row, 3], "1945 population", stateName),
+                        ModernPopulation = statesSheet.Cells[row, 4].GetValue<double>(),
+                        OtlMaxPopulation = GetValidDouble(statesSheet.Cells[row, 5], "OTL Max population", stateName),
 
                         // Historical growth rates
-                        Rate4660 = ValidateGrowthRate(statesSheet.Cells[row, 7].GetValue<double>(), "46-60", stateName),
-                        Rate4670 = ValidateGrowthRate(statesSheet.Cells[row, 8].GetValue<double>(), "46-70", stateName),
-                        Rate5060 = ValidateGrowthRate(statesSheet.Cells[row, 9].GetValue<double>(), "50-60", stateName),
-                        Rate5565 = ValidateGrowthRate(statesSheet.Cells[row, 10].GetValue<double>(), "55-65", stateName),
-                        Rate5070 = ValidateGrowthRate(statesSheet.Cells[row, 11].GetValue<double>(), "50-70", stateName),
-                        Rate6070 = ValidateGrowthRate(statesSheet.Cells[row, 12].GetValue<double>(), "60-70", stateName),
-                        Rate7080 = ValidateGrowthRate(statesSheet.Cells[row, 13].GetValue<double>(), "70-80", stateName),
+                        Rate4660 = ValidateGrowthRate(statesSheet.Cells[row, 6].GetValue<double>(), "46-60", stateName),
+                        Rate4670 = ValidateGrowthRate(statesSheet.Cells[row, 7].GetValue<double>(), "46-70", stateName),
+                        Rate5060 = ValidateGrowthRate(statesSheet.Cells[row, 8].GetValue<double>(), "50-60", stateName),
+                        Rate5565 = ValidateGrowthRate(statesSheet.Cells[row, 9].GetValue<double>(), "55-65", stateName),
+                        Rate5070 = ValidateGrowthRate(statesSheet.Cells[row, 10].GetValue<double>(), "50-70", stateName),
+                        Rate6070 = ValidateGrowthRate(statesSheet.Cells[row, 11].GetValue<double>(), "60-70", stateName),
+                        Rate7080 = ValidateGrowthRate(statesSheet.Cells[row, 12].GetValue<double>(), "70-80", stateName),
 
-                        UseCustomPreWarPeriods = statesSheet.Cells[row, 14].GetValue<bool>(),
-                        UseCustomPostWarPeriods = statesSheet.Cells[row, 15].GetValue<bool>(),
-                        UseCustomGhoulPeriods = statesSheet.Cells[row, 16].GetValue<bool>(),
-                        PreWarPeriods = ParsePreWarPeriods(statesSheet.Cells[row, 17].GetValue<string>()),
-                        PostWarPeriods = ParsePostWarPeriods(statesSheet.Cells[row, 18].GetValue<string>()),
-                        GhoulPeriods = ParseGhoulPeriods(statesSheet.Cells[row, 19].GetValue<string>())
+                        UseCustomPreWarPeriods = statesSheet.Cells[row, 13].GetValue<bool>(),
+                        UseCustomPostWarPeriods = statesSheet.Cells[row, 14].GetValue<bool>(),
+                        UseCustomGhoulPeriods = statesSheet.Cells[row, 15].GetValue<bool>(),
+                        PreWarPeriods = ParsePreWarPeriods(statesSheet.Cells[row, 16].GetValue<string>()),
+                        PostWarPeriods = ParsePostWarPeriods(statesSheet.Cells[row, 17].GetValue<string>()),
+                        GhoulPeriods = ParseGhoulPeriods(statesSheet.Cells[row, 18].GetValue<string>())
                     };
 
                     // Validate required fields
                     ValidateStateData(state);
-
-                    // Set default values for missing rates
-                    if (state.Rate4660 == 0) state.Rate4660 = 0.025;
-                    if (state.Rate4670 == 0) state.Rate4670 = 0.025;
-                    if (state.Rate5060 == 0) state.Rate5060 = 0.025;
-                    if (state.Rate5565 == 0) state.Rate5565 = 0.025;
-                    if (state.Rate5070 == 0) state.Rate5070 = 0.025;
-                    if (state.Rate6070 == 0) state.Rate6070 = 0.025;
-                    if (state.Rate7080 == 0) state.Rate7080 = 0.025;
 
                     if (!state.IsOffMap)
                         states.Add(state);
@@ -136,18 +132,18 @@ namespace PopulationCalculator.Services
             ), "pre-war");
         }
 
-        private static List<(int years, double rateModifier, int popChange)> ParsePostWarPeriods(string periodsText)
+        private static List<(int years, double rateModifier, double popChange)> ParsePostWarPeriods(string periodsText)
         {
             return ParsePeriods(periodsText, parts => (
                 int.Parse(parts[0], ParsingCulture),
                 double.Parse(parts[1], ParsingCulture),
-                int.Parse(parts[2], ParsingCulture)
+                double.Parse(parts[2], ParsingCulture)  // Changed from int.Parse to double.Parse
             ), "post-war");
         }
 
-        private static List<(int years, double rateModifier, int popChange)> ParseGhoulPeriods(string periodsText)
+        private static List<(int years, double rateModifier, double popChange)> ParseGhoulPeriods(string periodsText)
         {
-            // Ghoul periods use the same format as post-war periods (years, rate, popChange)
+            // Ghoul periods use the same format as post-war periods
             return ParsePostWarPeriods(periodsText);
         }
 
@@ -174,10 +170,13 @@ namespace PopulationCalculator.Services
 
         private static double ValidateGrowthRate(double rate, string periodName, string stateName)
         {
-            // Only check for invalid number states (NaN, Infinity)
             if (double.IsNaN(rate) || double.IsInfinity(rate))
                 throw new InvalidOperationException(
                     $"Invalid growth rate for {periodName} in {stateName}: {rate}");
+            
+            // If the rate is greater than 1, assume it's a percentage and convert it
+            if (Math.Abs(rate) > 1)
+                rate = rate / 100;
                 
             return rate;
         }

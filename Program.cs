@@ -3,31 +3,41 @@ using PopulationCalculator.Models;
 
 #region User Customization Settings
 
-var settings = ExcelSettingsReader.ReadSettings("Settings.xlsx");
+var statesList = ExcelSettingsReader.ReadStateSettings("Settings.xlsx");
 
-// Add historical rates to formulas
-PopulationFormulas.AddHistoricalRates(
-    settings.Rate4660, 
-    settings.Rate4670, 
-    settings.Rate5060,
-    settings.Rate5565, 
-    settings.Rate5070, 
-    settings.Rate6070,
-    settings.Rate7080);
+foreach (var state in statesList)
+{
+    // Add historical rates to formulas
+    PopulationFormulas.AddHistoricalRates(
+        state.Rate4660, 
+        state.Rate4670, 
+        state.Rate5060,
+        state.Rate5565, 
+        state.Rate5070, 
+        state.Rate6070,
+        state.Rate7080);
 
-var calculator = new PopulationCalculator.Services.PopulationCalculator(
-    settings.InitialPopulation1945,
-    settings.ModernPopulation,
-    settings.OtlMaxPopulation);
+    var calculator = new PopulationCalculator.Services.PopulationCalculator(
+        state.InitialPopulation1945,
+        state.ModernPopulation,
+        state.OtlMaxPopulation);
 
-var results = calculator.CalculatePopulations(
-    settings.UseCustomPreWarPeriods ? settings.CustomPreWarPeriods : null,
-    settings.UseCustomPostWarPeriods ? settings.CustomPostWarPeriods : null,
-    settings.UseCustomGhoulPeriods ? settings.CustomGhoulPeriods : null
-);
+    var results = calculator.CalculatePopulations(
+        state.StateName,
+        preWarPeriods: state.UseCustomPreWarPeriods ? state.PreWarPeriods : null,
+        postWarPeriods: state.UseCustomPostWarPeriods ? 
+            state.PostWarPeriods.Select(p => (p.years, p.rateModifier, (double)p.popChange)).ToList() : null,
+        ghoulPeriods: state.UseCustomGhoulPeriods ? 
+            state.GhoulPeriods.Select(p => (p.years, p.rateModifier, (double)p.popChange)).ToList() : null
+    );
 
-// Write results to appropriate file
-string outputFile = (settings.UseCustomPreWarPeriods || settings.UseCustomPostWarPeriods || settings.UseCustomGhoulPeriods) 
-    ? settings.CustomOutputFile 
-    : settings.DefaultOutputFile;
-FileHelper.WriteResults(results, outputFile);
+    if (results != null && results.Any())
+    {
+        string outputFile = (state.UseCustomPreWarPeriods || state.UseCustomPostWarPeriods || state.UseCustomGhoulPeriods) 
+            ? $"{state.StateName}_custom.csv"
+            : $"{state.StateName}_default.csv";
+        FileHelper.WriteResults(results, outputFile);
+    }
+}
+
+#endregion
