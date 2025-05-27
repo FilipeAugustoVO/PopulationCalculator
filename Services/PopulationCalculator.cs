@@ -295,7 +295,8 @@ namespace PopulationCalculator.Services
             {
                 StateName = "Ghouls",
                 Year = 2077 + periods.Sum(p => p.years),
-                Population = population
+                Population = population,
+                Description = "Ghoul Population"  // Added required Description property
             });
         }
 

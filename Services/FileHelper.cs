@@ -16,9 +16,19 @@ namespace PopulationCalculator.Services
 
             // Combine the Results folder path with the output filename
             string fullPath = Path.Combine(ResultsFolder, outputFile);
-            
+
+            // Create CSV header and data
+            var lines = new List<string>
+            {
+                "State,Year,Population,Description" // CSV header
+            };
+
+            // Add each result as a CSV line
+            lines.AddRange(results.Select(r => 
+                $"{r.StateName},{r.Year},{r.Population:N3},{r.Description}"));
+
             // Write the results to the file in the Results folder
-            File.WriteAllLines(fullPath, results.Select(r => r.ToString())!);
+            File.WriteAllLines(fullPath, lines);
         }
     }
 }
