@@ -49,6 +49,15 @@ namespace PopulationCalculator.Services
         {
             var results = new List<PopulationResult>();
 
+            // Add initial population
+            results.Add(new PopulationResult
+            {
+                StateName = stateName,
+                Year = 1945,
+                Population = InitialPopulation1945,
+                Description = "Initial Population"
+            });
+
             // Calculate pre-war population using growth rate from formulas
             double growthRate = PopulationFormulas.PreWarFormulas.First().Value; // Use first formula's rate
             double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, growthRate, preWarPeriods ?? DefaultPreWarPeriods);
@@ -59,6 +68,15 @@ namespace PopulationCalculator.Services
             // Only continue if validation passed
             if (validatedPop > 0)
             {
+                // Add pre-war population if validation passes
+                results.Add(new PopulationResult
+                {
+                    StateName = stateName,
+                    Year = 2077,
+                    Population = validatedPop,
+                    Description = "Pre-War Population"
+                });
+
                 // KEOFF calculations
                 decimal preWarPopDecimal = (decimal)preWarPop;
                 var keoffRate = CalculateKeoffRate(preWarPopDecimal);

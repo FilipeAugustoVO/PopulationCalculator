@@ -11,6 +11,9 @@ namespace PopulationCalculator.Services
 
         public static void WriteResults(List<PopulationResult> results, string outputFile)
         {
+            // Sanitize file name by removing invalid characters
+            outputFile = SanitizeFileName(outputFile);
+            
             // Change file extension from .csv to .txt
             outputFile = Path.ChangeExtension(outputFile, ".txt");
             
@@ -24,6 +27,23 @@ namespace PopulationCalculator.Services
 
             // Write the results to the file
             File.WriteAllLines(fullPath, lines);
+        }
+
+        private static string SanitizeFileName(string fileName)
+        {
+            // Remove invalid characters
+            var invalidChars = Path.GetInvalidFileNameChars();
+            string sanitized = string.Join("_", 
+                fileName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+            
+            // Replace spaces and other problematic characters
+            sanitized = sanitized
+                .Replace(" ", "_")
+                .Replace("/", "_")
+                .Replace("\\", "_")
+                .Replace(":", "_");
+
+            return sanitized;
         }
     }
 }
