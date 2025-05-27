@@ -11,7 +11,8 @@ namespace PopulationCalculator.Services
 #pragma warning disable CS0618
         static ExcelSettingsReader()
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            //ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialPersonal("Brazilian Slaughter");
         }
 #pragma warning restore CS0618
 
@@ -35,13 +36,23 @@ namespace PopulationCalculator.Services
                 try
                 {
                     var stateName = statesSheet.Cells[row, 1].GetValue<string>();
+                    bool isOffMap = bool.Parse(statesSheet.Cells[row, 2].Text);
+
+                    // Skip validation for off-map states
+                    if (isOffMap)
+                        continue;
+
                     var state = new StateSettings
                     {
-                        StateName = statesSheet.Cells[row, 1].Text,
-                        IsOffMap = bool.Parse(statesSheet.Cells[row, 2].Text),
+                        StateName = stateName,
+                        IsOffMap = isOffMap,
                         InitialPopulation1945 = GetValidDouble(statesSheet.Cells[row, 3], "1945 population", stateName),
-                        ModernPopulation = statesSheet.Cells[row, 4].GetValue<double>(),
-                        OtlMaxPopulation = GetValidDouble(statesSheet.Cells[row, 5], "OTL Max population", stateName),
+                        ModernPopulation = stateName == "Panama Canal Zone" ? 
+        0 : // Panama Canal Zone doesn't need Modern population
+        GetValidDouble(statesSheet.Cells[row, 4], "Modern population", stateName),
+    OtlMaxPopulation = stateName == "Panama Canal Zone" ? 
+        0 : // Panama Canal Zone doesn't need OTL Max population
+        GetValidDouble(statesSheet.Cells[row, 5], "OTL Max population", stateName),
 
                         // Historical growth rates
                         Rate4660 = ValidateGrowthRate(statesSheet.Cells[row, 6].GetValue<double>(), "46-60", stateName),
@@ -62,9 +73,7 @@ namespace PopulationCalculator.Services
 
                     // Validate required fields
                     ValidateStateData(state);
-
-                    if (!state.IsOffMap)
-                        states.Add(state);
+                    states.Add(state);
                 }
                 catch (Exception ex)
                 {
@@ -84,6 +93,15 @@ namespace PopulationCalculator.Services
             // Population validation    
             if (state.InitialPopulation1945 <= 0)
                 throw new InvalidOperationException($"Invalid 1945 population for {state.StateName}");
+
+            // Only validate Modern and OTL Max populations for non-Panama Canal Zone states
+            if (state.StateName != "Panama Canal Zone")
+            {
+                if (state.ModernPopulation <= 0)
+                    throw new InvalidOperationException($"Invalid Modern population for {state.StateName}");
+                if (state.OtlMaxPopulation <= 0)
+                    throw new InvalidOperationException($"Invalid OTL Max population for {state.StateName}");
+            }
                 
             // Custom periods validation
             if (state.UseCustomPreWarPeriods && !state.PreWarPeriods.Any())
@@ -92,15 +110,31 @@ namespace PopulationCalculator.Services
             // Add validation for post-war and ghoul periods
             if (state.UseCustomPostWarPeriods && !state.PostWarPeriods.Any())
                 throw new InvalidOperationException($"Custom post-war periods enabled but none provided for {state.StateName}");
-        
+
             if (state.UseCustomGhoulPeriods && !state.GhoulPeriods.Any())
                 throw new InvalidOperationException($"Custom ghoul periods enabled but none provided for {state.StateName}");
+        }
+
+        private static bool ValidatePeriodFormat(string periodsText)
+        {
+            // Updated patterns to handle negative decimals and spaces
+            var preWarPattern = @"^\(\s*\d+\s*,\s*-?\d*\.?\d*\s*\)(\s*,\s*\(\s*\d+\s*,\s*-?\d*\.?\d*\s*\))*$";
+            var postWarPattern = @"^\(\s*\d+\s*,\s*-?\d*\.?\d*\s*,\s*-?\d*\.?\d*\s*\)(\s*,\s*\(\s*\d+\s*,\s*-?\d*\.?\d*\s*,\s*-?\d*\.?\d*\s*\))*$";
+            
+            return System.Text.RegularExpressions.Regex.IsMatch(periodsText, preWarPattern) ||
+                   System.Text.RegularExpressions.Regex.IsMatch(periodsText, postWarPattern);
         }
 
         private static List<T> ParsePeriods<T>(string periodsText, Func<string[], T> parser, string periodType)
         {
             var periods = new List<T>();
+            
+            // Return empty list for null, empty or whitespace
             if (string.IsNullOrWhiteSpace(periodsText)) 
+                return periods;
+                
+            // Skip parsing if cell contains only "()" or similar empty patterns
+            if (periodsText.Trim().Replace("(", "").Replace(")", "").Replace(" ", "").Length == 0)
                 return periods;
 
             try
@@ -112,8 +146,12 @@ namespace PopulationCalculator.Services
                 var periodStrings = periodsText.Split(')').Where(p => !string.IsNullOrWhiteSpace(p));
                 foreach (var period in periodStrings)
                 {
-                    var parts = period.Trim('(', ')', ' ').Split(',');
-                    periods.Add(parser(parts));
+                    // Trim spaces when splitting parts
+                    var parts = period.Trim('(', ')', ' ').Split(',').Select(p => p.Trim()).ToArray();
+                    if (parts.Any() && !string.IsNullOrWhiteSpace(parts[0]))
+                    {
+                        periods.Add(parser(parts));
+                    }
                 }
             }
             catch (Exception ex)
@@ -145,19 +183,6 @@ namespace PopulationCalculator.Services
         {
             // Ghoul periods use the same format as post-war periods
             return ParsePostWarPeriods(periodsText);
-        }
-
-        private static bool ValidatePeriodFormat(string periodsText)
-        {
-            // Patterns explained:
-            // ^\(\d+,\d+\.?\d*\)         - Starts with (number,number[.decimals])
-            // (,\(\d+,\d+\.?\d*\))*$     - Can be followed by more of the same
-            // \d+\.?\d*,\d+\)            - Post-war adds third number for popChange
-            var preWarPattern = @"^\(\d+,\d+\.?\d*\)(,\(\d+,\d+\.?\d*\))*$";
-            var postWarPattern = @"^\(\d+,\d+\.?\d*,\d+\)(,\(\d+,\d+\.?\d*,\d+\))*$";
-            
-            return System.Text.RegularExpressions.Regex.IsMatch(periodsText, preWarPattern) ||
-                   System.Text.RegularExpressions.Regex.IsMatch(periodsText, postWarPattern);
         }
 
         private static double GetValidDouble(ExcelRange cell, string fieldName, string stateName)

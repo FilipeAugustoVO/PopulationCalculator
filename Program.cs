@@ -3,9 +3,9 @@ using PopulationCalculator.Models;
 
 #region User Customization Settings
 
-var statesList = ExcelSettingsReader.ReadStateSettings("Settings.xlsx");
+var states = ExcelSettingsReader.ReadStateSettings(@"C:\Filipe\FODD\Scripts\PopulationCalculator\PopulationCalculationData.xlsx");
 
-foreach (var state in statesList)
+foreach (var state in states)
 {
     // Add historical rates to formulas
     PopulationFormulas.AddHistoricalRates(
