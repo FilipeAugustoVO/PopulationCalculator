@@ -11,23 +11,18 @@ namespace PopulationCalculator.Services
 
         public static void WriteResults(List<PopulationResult> results, string outputFile)
         {
+            // Change file extension from .csv to .txt
+            outputFile = Path.ChangeExtension(outputFile, ".txt");
+            
             // Create Results directory if it doesn't exist
             Directory.CreateDirectory(ResultsFolder);
-
-            // Combine the Results folder path with the output filename
             string fullPath = Path.Combine(ResultsFolder, outputFile);
 
-            // Create CSV header and data
-            var lines = new List<string>
-            {
-                "State,Year,Population,Description" // CSV header
-            };
+            // Format each result as a text line
+            var lines = results.Select(r => 
+                $"{r.Description} ({r.Year}): {r.Population:N3}");
 
-            // Add each result as a CSV line
-            lines.AddRange(results.Select(r => 
-                $"{r.StateName},{r.Year},{r.Population:N3},{r.Description}"));
-
-            // Write the results to the file in the Results folder
+            // Write the results to the file
             File.WriteAllLines(fullPath, lines);
         }
     }
