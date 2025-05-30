@@ -10,17 +10,22 @@ public static class PopulationFormulas
         double rate5565, double rate5070, double rate6070,
         double rate7080)
     {
-        // Clear existing rates first
         PreWarFormulas.Clear();
 
-        // Add rates with percentage conversion
-        PreWarFormulas["46-60 formula"] = rate4660 / 100;
-        PreWarFormulas["46-70 formula"] = rate4670 / 100;
-        PreWarFormulas["50-60 formula"] = rate5060 / 100;
-        PreWarFormulas["55-65 formula"] = rate5565 / 100;
-        PreWarFormulas["50-70 formula"] = rate5070 / 100;
-        PreWarFormulas["60-70 formula"] = rate6070 / 100;
-        PreWarFormulas["70-80s formula"] = rate7080 / 100;
+        void AddRate(string key, double rate)
+        {
+            // Simply store the rate as provided - no conversion needed
+            PreWarFormulas[key] = rate;
+        }
+
+        // Add rates
+        AddRate("46-60 formula", rate4660);
+        AddRate("46-70 formula", rate4670);
+        AddRate("50-60 formula", rate5060);
+        AddRate("55-65 formula", rate5565);
+        AddRate("50-70 formula", rate5070);
+        AddRate("60-70 formula", rate6070);
+        AddRate("70-80s formula", rate7080);
     }
 
     public static readonly Dictionary<string, double> PostApocFormulas = new()

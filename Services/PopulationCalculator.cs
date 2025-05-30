@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using PopulationCalculator.Models;
+using System.IO;
 
 namespace PopulationCalculator.Services
 {
@@ -14,6 +15,8 @@ namespace PopulationCalculator.Services
 
         private readonly NumberFormatInfo nfi = new NumberFormatInfo { NumberDecimalSeparator = ",", NumberGroupSeparator = "." };
 
+        private readonly string _debugLogPath;
+
         public PopulationCalculator(
             double initialPopulation1945,
             double modernPopulation,
@@ -22,6 +25,14 @@ namespace PopulationCalculator.Services
             InitialPopulation1945 = initialPopulation1945;
             ModernPopulation = modernPopulation;
             OtlMaxPopulation = otlMaxPopulation;
+            
+            // Create Results directory if it doesn't exist
+            string resultsDir = Path.Combine(Directory.GetCurrentDirectory(), "Results");
+            Directory.CreateDirectory(resultsDir);
+            _debugLogPath = Path.Combine(resultsDir, "calculation_debug.log");
+            
+            // Append to the log instead of clearing it
+            File.AppendAllText(_debugLogPath, $"\n=== New calculation session started at {DateTime.Now} ===\n\n");
         }
 
         // Default growth periods
@@ -47,9 +58,12 @@ namespace PopulationCalculator.Services
             List<(int years, double rateModifier, double popChange)>? postWarPeriods = null,
             List<(int years, double rateModifier, double popChange)>? ghoulPeriods = null)
         {
+            // Append state calculations instead of clearing the file
+            LogDebug($"\n=== Starting calculations for {stateName} ===\n");
+            
             var results = new List<PopulationResult>();
-
-            // Add initial population
+            
+            // Add initial population and log it
             results.Add(new PopulationResult
             {
                 StateName = stateName,
@@ -57,35 +71,110 @@ namespace PopulationCalculator.Services
                 Population = InitialPopulation1945,
                 Description = "Initial Population"
             });
-
+            
+            LogDebug($"Initial Population (1945): {InitialPopulation1945:N0}");
+            
             // Calculate pre-war population using growth rate from formulas
-            double growthRate = PopulationFormulas.PreWarFormulas.First().Value; // Use first formula's rate
-            double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, growthRate, preWarPeriods ?? DefaultPreWarPeriods);
+            double preWarPop = 0;
 
-            // Validate population with state name
-            var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
-
-            // Only continue if validation passed
-            if (validatedPop > 0)
+            // Try all growth rates
+            foreach (var formula in PopulationFormulas.PreWarFormulas)
             {
-                // Add pre-war population if validation passes
+                double growthRate = formula.Value;
+                LogDebug($"\nTrying {formula.Key}:");
+                
+                preWarPop = CalculatePreWarPopulation(InitialPopulation1945, growthRate, preWarPeriods ?? DefaultPreWarPeriods);
+                
+                var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
+                LogDebug($"Validation result: {reason}\n");
+
+                if (validatedPop > 0)
+                {
+                    preWarPop = validatedPop;
+                    LogDebug($"Found valid population: {preWarPop:N0}");
+                    break;
+                }
+            }
+
+            // After trying all formulas, if none worked, apply Red Rule
+            if (preWarPop == 0)
+            {
+                // Try multipliers from x6 to x10
+                for (int multiplier = 6; multiplier <= 10; multiplier++)
+                {
+                    double redRulePop = OtlMaxPopulation * multiplier;
+                    LogDebug($"Trying Red Rule x{multiplier}: {redRulePop:N0}");
+                    
+                    var (validatedPop, reason) = ValidatePreWarPopulation(redRulePop, stateName, new List<double>());
+                    LogDebug($"Validation result: {reason}");
+                    
+                    if (validatedPop > 0)
+                    {
+                        preWarPop = validatedPop;
+                        break;
+                    }
+                }
+
+                // If still no valid population, use x5 of OTL max as per the corollary
+                if (preWarPop == 0)
+                {
+                    preWarPop = OtlMaxPopulation * 5;
+                    LogDebug($"Using Red Rule corollary (x5): {preWarPop:N0}");
+                    
+                    // Validate corollary result
+                    var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
+                    LogDebug($"Validation result: {reason}");
+                    
+                    if (validatedPop > 0)
+                    {
+                        preWarPop = validatedPop;
+                    }
+                }
+            }
+
+            // Debug output
+            LogDebug($"\nFinal Results:");
+            LogDebug($"State: {stateName}");
+            LogDebug($"Initial Pop: {InitialPopulation1945:N0}");
+            LogDebug($"Pre-war Pop: {preWarPop:N0}");
+            LogDebug($"OTL Max: {OtlMaxPopulation:N0}");
+
+            // Continue with KEOFF calculations if we have a valid population
+            if (preWarPop > 0)
+            {
+                // Add pre-war population
                 results.Add(new PopulationResult
                 {
                     StateName = stateName,
                     Year = 2077,
-                    Population = validatedPop,
+                    Population = preWarPop,
                     Description = "Pre-War Population"
                 });
 
                 // KEOFF calculations
-                decimal preWarPopDecimal = (decimal)preWarPop;
+                decimal preWarPopDecimal = (decimal)preWarPop;  // Use validated population
                 var keoffRate = CalculateKeoffRate(preWarPopDecimal);
                 decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
 
-                // Calculate initial ghoul population (40% of survivors)
-                decimal initialGhoulPop = survivingPop * 0.40M;
+                results.Add(new PopulationResult
+                {
+                    StateName = stateName,
+                    Year = 2077,
+                    Population = (double)survivingPop,
+                    Description = $"KEOFF Survivors ({keoffRate:P1} death rate)"
+                });
 
-                // Use existing ghoul calculation methods
+                // Add initial ghoul population result
+                decimal initialGhoulPop = survivingPop * 0.40M;
+                results.Add(new PopulationResult
+                {
+                    StateName = stateName,
+                    Year = 2077,
+                    Population = (double)initialGhoulPop,
+                    Description = "Initial Ghoul Population (40% of survivors)"
+                });
+
+                // Final ghoul population (already being calculated)
                 double finalGhoulPop = CalculateGhoulPopulation(
                     (double)initialGhoulPop,
                     -0.001, // -0.1% yearly decline
@@ -99,6 +188,11 @@ namespace PopulationCalculator.Services
             return results;
         }
 
+        private void LogDebug(string message)
+        {
+            File.AppendAllText(_debugLogPath, $"{message}\n");
+        }
+
         private double CalculatePreWarPopulation(
             double initialPop, 
             double growthRate, 
@@ -106,10 +200,29 @@ namespace PopulationCalculator.Services
         {
             double population = initialPop;
             
+            // Always convert to decimal form if it's expressed as a percentage
+            // e.g., 2.5 (meaning 2.5%) should become 0.025
+            // e.g., 0.025 (already in decimal form) should stay as 0.025
+            if (Math.Abs(growthRate) > 0.15) // If rate is greater than 15% (0.15), assume it's in percentage form
+            {
+                growthRate = growthRate / 100.0;
+            }
+            
+            // Initial debug info
+            LogDebug($"\n=== Pre-War Population Calculation for {population:N0} ===");
+            LogDebug($"Initial: {population:N0}");
+            LogDebug($"Growth Rate: {growthRate.ToString(nfi)}");
+            
             foreach (var (years, modifier) in periods)
             {
                 var adjustedRate = growthRate * modifier;
+                
+                LogDebug($"Years: {years}, Modifier: {modifier}, Adjusted Rate: {adjustedRate.ToString(nfi)}");
+                LogDebug($"Before: {population:N0}");
+                
                 population *= Math.Pow(1 + adjustedRate, years);
+                
+                LogDebug($"After: {population:N0}\n");
             }
             
             return population;
@@ -311,10 +424,10 @@ namespace PopulationCalculator.Services
         {
             results.Add(new PopulationResult
             {
-                StateName = "Ghouls",
+                StateName = results[0].StateName,  // Use the original state name instead of "Ghouls"
                 Year = 2077 + periods.Sum(p => p.years),
                 Population = population,
-                Description = "Ghoul Population"  // Added required Description property
+                Description = "Final Ghoul Population"
             });
         }
 
