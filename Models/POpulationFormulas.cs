@@ -2,30 +2,32 @@ namespace PopulationCalculator.Models;
 
 public static class PopulationFormulas
 {
-    // Change from private to public
-    public static readonly Dictionary<string, double> PreWarFormulas = new();
+    public static readonly Dictionary<string, double> PreWarFormulas = new()
+    {
+        { "0.25% formula", 0.25 / 100 },
+        { "0.5% formula", 0.5 / 100 },
+        { "0.75% formula", 0.75 / 100 },
+        { "1% formula", 1.0 / 100 },
+        { "1.10% formula", 1.1 / 100 },
+        { "1.25% formula", 1.25 / 100 },
+        { "1.5% formula", 1.5 / 100 },
+        { "1.75% formula", 1.75 / 100 },
+        { "2% formula", 2.0 / 100 }
+    };
 
     public static void AddHistoricalRates(
         double rate4660, double rate4670, double rate5060,
         double rate5565, double rate5070, double rate6070,
         double rate7080)
     {
-        PreWarFormulas.Clear();
-
-        void AddRate(string key, double rate)
-        {
-            // Simply store the rate as provided - no conversion needed
-            PreWarFormulas[key] = rate;
-        }
-
-        // Add rates
-        AddRate("46-60 formula", rate4660);
-        AddRate("46-70 formula", rate4670);
-        AddRate("50-60 formula", rate5060);
-        AddRate("55-65 formula", rate5565);
-        AddRate("50-70 formula", rate5070);
-        AddRate("60-70 formula", rate6070);
-        AddRate("70-80s formula", rate7080);
+        // Add historical rates to the existing formulas
+        PreWarFormulas.Add("46-60 formula", rate4660 / 100);
+        PreWarFormulas.Add("46-70 formula", rate4670 / 100);
+        PreWarFormulas.Add("50-60 formula", rate5060 / 100);
+        PreWarFormulas.Add("55-65 formula", rate5565 / 100);
+        PreWarFormulas.Add("50-70 formula", rate5070 / 100);
+        PreWarFormulas.Add("60-70 formula", rate6070 / 100);
+        PreWarFormulas.Add("70-80s formula", rate7080 / 100);
     }
 
     public static readonly Dictionary<string, double> PostApocFormulas = new()

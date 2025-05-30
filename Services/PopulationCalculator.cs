@@ -92,7 +92,6 @@ namespace PopulationCalculator.Services
                 {
                     preWarPop = validatedPop;
                     LogDebug($"Found valid population: {preWarPop:N0}");
-                    break;
                 }
             }
 
@@ -111,7 +110,6 @@ namespace PopulationCalculator.Services
                     if (validatedPop > 0)
                     {
                         preWarPop = validatedPop;
-                        break;
                     }
                 }
 
