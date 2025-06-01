@@ -140,7 +140,6 @@ namespace PopulationCalculator.Services
             // Continue with KEOFF calculations if we have a valid population
             if (preWarPop > 0)
             {
-                // Add pre-war population
                 results.Add(new PopulationResult
                 {
                     StateName = stateName,
@@ -149,11 +148,11 @@ namespace PopulationCalculator.Services
                     Description = "Pre-War Population"
                 });
 
-                // KEOFF calculations
-                decimal preWarPopDecimal = (decimal)preWarPop;  // Use validated population
+                // KEOFF calculations using safe decimal conversion
+                decimal preWarPopDecimal = ConvertToDecimal(preWarPop, "Pre-war population");
                 var keoffRate = CalculateKeoffRate(preWarPopDecimal);
                 decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
-
+                
                 results.Add(new PopulationResult
                 {
                     StateName = stateName,
@@ -198,10 +197,10 @@ namespace PopulationCalculator.Services
         {
             double population = initialPop;
             
-            // Always convert to decimal form if it's expressed as a percentage
-            // e.g., 2.5 (meaning 2.5%) should become 0.025
-            // e.g., 0.025 (already in decimal form) should stay as 0.025
-            if (Math.Abs(growthRate) > 0.15) // If rate is greater than 15% (0.15), assume it's in percentage form
+            // Historical rates come in as decimals like 0.7072 meaning 70.72%
+            // Pre-defined rates are already converted when defined (like 0.015 for 1.5%)
+            bool isHistoricalRate = Math.Abs(growthRate) > 0.1; // If rate > 10%, it's a historical rate
+            if (isHistoricalRate)
             {
                 growthRate = growthRate / 100.0;
             }
@@ -437,6 +436,24 @@ namespace PopulationCalculator.Services
         private void CalculateAndOutputMPStats(List<string> results, double postFyocPop)
         {
             // Placeholder for additional MP statistics logic
+        }
+
+        private decimal ConvertToDecimal(double value, string description)
+        {
+            try
+            {
+                if (value > 7.922816E+28)
+                {
+                    LogDebug($"WARNING: {description} {value:E2} exceeds decimal maximum. Capping at maximum value.");
+                    return 7.922816E+28M;
+                }
+                return (decimal)value;
+            }
+            catch (OverflowException)
+            {
+                LogDebug($"WARNING: {description} {value:E2} caused overflow. Capping at maximum decimal value.");
+                return 7.922816E+28M;
+            }
         }
     }
 }

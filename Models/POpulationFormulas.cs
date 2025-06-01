@@ -20,14 +20,31 @@ public static class PopulationFormulas
         double rate5565, double rate5070, double rate6070,
         double rate7080)
     {
-        // Add historical rates to the existing formulas
-        PreWarFormulas.Add("46-60 formula", rate4660 / 100);
-        PreWarFormulas.Add("46-70 formula", rate4670 / 100);
-        PreWarFormulas.Add("50-60 formula", rate5060 / 100);
-        PreWarFormulas.Add("55-65 formula", rate5565 / 100);
-        PreWarFormulas.Add("50-70 formula", rate5070 / 100);
-        PreWarFormulas.Add("60-70 formula", rate6070 / 100);
-        PreWarFormulas.Add("70-80s formula", rate7080 / 100);
+        // Debug logging to see actual values
+        Console.WriteLine($"46-60 rate received: {rate4660}");
+        
+        var historicalRates = new Dictionary<string, double>
+        {
+            { "46-60 formula", rate4660 },  // Should be 5.38, not 53800
+            { "46-70 formula", rate4670 },  // Should be 2.7763, not 27763
+            { "50-60 formula", rate5060 },
+            { "55-65 formula", rate5565 },
+            { "50-70 formula", rate5070 },
+            { "60-70 formula", rate6070 },
+            { "70-80s formula", rate7080 }
+        };
+
+        foreach (var rate in historicalRates)
+        {
+            if (PreWarFormulas.ContainsKey(rate.Key))
+            {
+                PreWarFormulas[rate.Key] = rate.Value;
+            }
+            else
+            {
+                PreWarFormulas.Add(rate.Key, rate.Value);
+            }
+        }
     }
 
     public static readonly Dictionary<string, double> PostApocFormulas = new()
