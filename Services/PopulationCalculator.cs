@@ -52,137 +52,148 @@ namespace PopulationCalculator.Services
             (178, 1.0, 0.0)  // 178 years of ghoul decline, no percentage or flat population change
         };
 
+        /// <summary>
+        /// Calculates population projections for a state using various growth formulas
+        /// </summary>
+        /// <param name="stateName">Name of the state</param>
+        /// <param name="preWarPeriods">Optional custom pre-war growth periods</param>
+        /// <param name="postWarPeriods">Optional custom post-war growth periods</param>
+        /// <param name="ghoulPeriods">Optional custom ghoul population periods</param>
+        /// <returns>List of population results for each valid growth formula</returns>
         public List<PopulationResult> CalculatePopulations(
             string stateName,
             List<(int years, double rateModifier)>? preWarPeriods = null,
             List<(int years, double rateModifier, double popChange)>? postWarPeriods = null,
             List<(int years, double rateModifier, double popChange)>? ghoulPeriods = null)
         {
-            // Append state calculations instead of clearing the file
             LogDebug($"\n=== Starting calculations for {stateName} ===\n");
+            LogDebug($"Initial Population (1945): {InitialPopulation1945:N0}\n");
             
             var results = new List<PopulationResult>();
             
-            // Add initial population and log it
-            results.Add(new PopulationResult
-            {
-                StateName = stateName,
-                Year = 1945,
-                Population = InitialPopulation1945,
-                Description = "Initial Population"
-            });
-            
-            LogDebug($"Initial Population (1945): {InitialPopulation1945:N0}");
-            
-            // Calculate pre-war population using growth rate from formulas
-            double preWarPop = 0;
-
-            // Try all growth rates
             foreach (var formula in PopulationFormulas.PreWarFormulas)
             {
-                double growthRate = formula.Value;
-                LogDebug($"\nTrying {formula.Key}:");
+                LogDebug($"\nTrying {formula.Key}:\n");
                 
-                preWarPop = CalculatePreWarPopulation(InitialPopulation1945, growthRate, preWarPeriods ?? DefaultPreWarPeriods);
+                var result = new PopulationResult 
+                { 
+                    StateName = stateName,
+                    Formula = formula.Key
+                };
+
+                // Calculate pre-war population
+                double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, formula.Value, preWarPeriods ?? DefaultPreWarPeriods);
+                result.Population = preWarPop;
                 
-                var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
-                LogDebug($"Validation result: {reason}\n");
+                // Validate population
+                var (validatedPop, validationStatus) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
+                result.ValidationStatus = validationStatus;
+                result.IsValid = validatedPop > 0;
 
-                if (validatedPop > 0)
+                if (result.IsValid)
                 {
-                    preWarPop = validatedPop;
-                    LogDebug($"Found valid population: {preWarPop:N0}");
+                    LogDebug($"Found valid population: {validatedPop:N0}\n");
+                    
+                    // KEOFF calculations
+                    decimal preWarPopDecimal = ConvertToDecimal(validatedPop, "Pre-war population");
+                    var keoffRate = CalculateKeoffRate(preWarPopDecimal);
+                    decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
+                    
+                    result.KeoffRate = (double)keoffRate;
+                    result.SurvivingPopulation = (double)survivingPop;
+                    
+                    // FYOC calculations
+                    double fyocLossRate = CalculateFyocLossRate((double)survivingPop);
+                    result.FyocLossRate = fyocLossRate;
+                    result.PostFyocPopulation = (double)survivingPop * (1 - fyocLossRate);
+                    
+                    // Calculate and store post-war projections with MP stats
+                    var postWarResults = CalculateAllPostWarProjections(
+                        result.PostFyocPopulation, 
+                        formula.Value,
+                        postWarPeriods ?? DefaultPostWarPeriods);
+                        
+                    result.PostWarProjections = postWarResults;
+                    
+                    // Calculate MP statistics
+                    var baseMps = postWarResults.Select(p => p.BaseMp).ToList();
+                    result.MpStatsAverage = baseMps.Average();
+                    result.MpStatsMedian = CalculateMedian(baseMps);
+                    
+                    // Calculate ghoul stats
+                    result.GhoulStats = CalculateGhoulStatistics(
+                        result.PostFyocPopulation,
+                        ghoulPeriods ?? DefaultGhoulPeriods);
                 }
-            }
-
-            // After trying all formulas, if none worked, apply Red Rule
-            if (preWarPop == 0)
-            {
-                // Try multipliers from x6 to x10
-                for (int multiplier = 6; multiplier <= 10; multiplier++)
-                {
-                    double redRulePop = OtlMaxPopulation * multiplier;
-                    LogDebug($"Trying Red Rule x{multiplier}: {redRulePop:N0}");
-                    
-                    var (validatedPop, reason) = ValidatePreWarPopulation(redRulePop, stateName, new List<double>());
-                    LogDebug($"Validation result: {reason}");
-                    
-                    if (validatedPop > 0)
-                    {
-                        preWarPop = validatedPop;
-                    }
-                }
-
-                // If still no valid population, use x5 of OTL max as per the corollary
-                if (preWarPop == 0)
-                {
-                    preWarPop = OtlMaxPopulation * 5;
-                    LogDebug($"Using Red Rule corollary (x5): {preWarPop:N0}");
-                    
-                    // Validate corollary result
-                    var (validatedPop, reason) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
-                    LogDebug($"Validation result: {reason}");
-                    
-                    if (validatedPop > 0)
-                    {
-                        preWarPop = validatedPop;
-                    }
-                }
-            }
-
-            // Debug output
-            LogDebug($"\nFinal Results:");
-            LogDebug($"State: {stateName}");
-            LogDebug($"Initial Pop: {InitialPopulation1945:N0}");
-            LogDebug($"Pre-war Pop: {preWarPop:N0}");
-            LogDebug($"OTL Max: {OtlMaxPopulation:N0}");
-
-            // Continue with KEOFF calculations if we have a valid population
-            if (preWarPop > 0)
-            {
-                results.Add(new PopulationResult
-                {
-                    StateName = stateName,
-                    Year = 2077,
-                    Population = preWarPop,
-                    Description = "Pre-War Population"
-                });
-
-                // KEOFF calculations using safe decimal conversion
-                decimal preWarPopDecimal = ConvertToDecimal(preWarPop, "Pre-war population");
-                var keoffRate = CalculateKeoffRate(preWarPopDecimal);
-                decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
                 
-                results.Add(new PopulationResult
-                {
-                    StateName = stateName,
-                    Year = 2077,
-                    Population = (double)survivingPop,
-                    Description = $"KEOFF Survivors ({keoffRate:P1} death rate)"
-                });
-
-                // Add initial ghoul population result
-                decimal initialGhoulPop = survivingPop * 0.40M;
-                results.Add(new PopulationResult
-                {
-                    StateName = stateName,
-                    Year = 2077,
-                    Population = (double)initialGhoulPop,
-                    Description = "Initial Ghoul Population (40% of survivors)"
-                });
-
-                // Final ghoul population (already being calculated)
-                double finalGhoulPop = CalculateGhoulPopulation(
-                    (double)initialGhoulPop,
-                    -0.001, // -0.1% yearly decline
-                    ghoulPeriods ?? DefaultGhoulPeriods
-                );
-
-                // Use only the main ghoul stats method
-                CalculateGhoulStats(results, finalGhoulPop, ghoulPeriods ?? DefaultGhoulPeriods);
+                results.Add(result);
             }
-
+            
             return results;
+        }
+
+        private List<PostWarProjection> CalculateAllPostWarProjections(
+            double postFyocPop,
+            double preWarRate,
+            List<(int years, double rateModifier, double popChange)> periods)
+        {
+            var projections = new List<PostWarProjection>();
+            
+            foreach (var formula in PopulationFormulas.PostApocFormulas)
+            {
+                var population = CalculatePostWarPopulation(
+                    postFyocPop,
+                    formula.Value,
+                    preWarRate,
+                    periods);
+                    
+                if (!double.IsNaN(population)) // Skip duplicate rates
+                {
+                    var projection = new PostWarProjection
+                    {
+                        Formula = formula.Key,
+                        Population = population,
+                        BaseMp = population / 10,
+                    };
+                    
+                    // Fix MP calculations:
+                    // 1. Divide Base MP by 1000 to get more manageable numbers
+                    projection.BaseMp = projection.BaseMp / 1000;
+                    
+                    // 2. On-map MP is just the integer part
+                    projection.OnMapMp = (int)Math.Floor(projection.BaseMp);
+                    
+                    // 3. Off-map MP is the decimal part only
+                    projection.OffMapMp = projection.BaseMp - projection.OnMapMp;
+                    
+                    // 4. Daily off-map is off-map divided by 100
+                    projection.DailyOffMap = projection.OffMapMp / 100;
+                    
+                    projections.Add(projection);
+                }
+            }
+            
+            return projections;
+        }
+
+        private GhoulStats CalculateGhoulStatistics(
+            double postFyocPop,
+            List<(int years, double rateModifier, double popChange)> periods)
+        {
+            var stats = new GhoulStats
+            {
+                InitialPopulation = postFyocPop * 0.15 // 15% become ghouls
+            };
+            
+            stats.FinalPopulation = CalculateGhoulPopulation(
+                stats.InitialPopulation,
+                -0.005, // -0.5% decline rate
+                periods);
+                
+            stats.OffMapMp = Math.Floor(stats.FinalPopulation / 10);
+            stats.DailyOffMap = stats.OffMapMp / 100;
+            
+            return stats;
         }
 
         private void LogDebug(string message)
@@ -257,35 +268,26 @@ namespace PopulationCalculator.Services
         private double CalculatePostWarPopulation(
             double initialPop, 
             double growthRate, 
-            double preWarRate, // Add parameter for pre-war rate
+            double preWarRate,
             List<(int years, double rateModifier, double popChange)> periods)
         {
             double population = initialPop;
+            double effectiveRate = growthRate;
             
-            // Only check negative modifiers for duplicates
+            // Handle negative growth rates (-12%, -25%, -50%, -75%)
             if (growthRate < 0)
             {
-                // Use the pre-war formula's rate as base
-                double reduction = Math.Abs(growthRate); // e.g., -12% becomes 0.12
-                double actualRate = preWarRate * (1 - reduction); // e.g., preWarRate * (1 - 0.12)
-                
-                // Check if this matches any positive growth rate
-                var positiveRates = PopulationFormulas.PostApocFormulas
-                    .Where(f => f.Value > 0)
-                    .Select(f => f.Value);
-
-                if (positiveRates.Any(r => Math.Abs(r - actualRate) < 0.0001))
-                {
-                    return double.NaN; // Signal that this is a duplicate rate
-                }
-
-                growthRate = actualRate;
+                // For negative rates, we want to directly use the percentage reduction
+                // e.g., -12% means multiply by 0.88 per year
+                effectiveRate = growthRate / 100.0;
             }
-
-            // Calculate population growth
+            // For positive rates, use them directly as they're already in decimal form
+            
+            // Calculate population growth/decline
             foreach (var (years, modifier, change) in periods)
             {
-                population = population * Math.Pow(1 + (growthRate * modifier), years);
+                var adjustedRate = effectiveRate * modifier;
+                population *= Math.Pow(1 + adjustedRate, years);
                 population += change;
             }
             
@@ -412,32 +414,6 @@ namespace PopulationCalculator.Services
                 return sortedValues[count / 2];
         }
 
-        private void CalculatePostWarProjections(List<string> results, double population, List<(int years, double rateModifier, int popChange)> periods)
-        {
-            // Placeholder for additional post-war projections logic
-        }
-
-        private void CalculateGhoulStats(List<PopulationResult> results, double population, List<(int years, double rateModifier, double popChange)> periods)
-        {
-            results.Add(new PopulationResult
-            {
-                StateName = results[0].StateName,  // Use the original state name instead of "Ghouls"
-                Year = 2077 + periods.Sum(p => p.years),
-                Population = population,
-                Description = "Final Ghoul Population"
-            });
-        }
-
-        private void CalculateAndOutputProjections(List<string> results, double postFyocPop)
-        {
-            // Placeholder for additional post-war projections logic
-        }
-
-        private void CalculateAndOutputMPStats(List<string> results, double postFyocPop)
-        {
-            // Placeholder for additional MP statistics logic
-        }
-
         private decimal ConvertToDecimal(double value, string description)
         {
             try
@@ -454,6 +430,35 @@ namespace PopulationCalculator.Services
                 LogDebug($"WARNING: {description} {value:E2} caused overflow. Capping at maximum decimal value.");
                 return 7.922816E+28M;
             }
+        }
+
+        private static double CalculateMedian(List<double> values)
+        {
+            var sortedValues = values.OrderBy(v => v).ToList();
+            int count = sortedValues.Count;
+            if (count == 0)
+                return 0;
+            
+            if (count % 2 == 0)
+                return (sortedValues[count / 2 - 1] + sortedValues[count / 2]) / 2;
+            else
+                return sortedValues[count / 2];
+        }
+
+        private static T CalculateMedian<T>(IEnumerable<T> values) where T : IComparable<T>
+        {
+            var sortedValues = values.OrderBy(v => v).ToList();
+            int count = sortedValues.Count;
+            if (count == 0)
+                throw new ArgumentException("Cannot calculate median of an empty sequence");
+            
+            if (count % 2 == 0)
+            {
+                dynamic a = sortedValues[count / 2 - 1];
+                dynamic b = sortedValues[count / 2];
+                return (T)((a + b) / 2);
+            }
+            return sortedValues[count / 2];
         }
     }
 }
