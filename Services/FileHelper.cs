@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 
 namespace PopulationCalculator.Services
 {
@@ -41,7 +42,27 @@ namespace PopulationCalculator.Services
 
                     // Post-War Population Projections
                     sb.AppendLine("Post-War Population Projections:");
-                    foreach (var proj in result.PostWarProjections.OrderBy(p => p.Formula))
+                    
+                    // Order projections in the desired sequence
+                    var orderedProjections = result.PostWarProjections
+                        .OrderBy(p => 
+                        {
+                            // Extract the rate value from the formula name
+                            var formulaText = p.Formula.Replace(" formula", "").Replace("%", "");
+                            var rate = double.Parse(formulaText, CultureInfo.InvariantCulture);
+                            
+                            // Put negative rates at the end in descending order
+                            if (p.Formula.StartsWith("-"))
+                                return -rate + 1000; // Changed from rate + 1000
+                                
+                            // Special case for 1% to come before 1.10%
+                            if (Math.Abs(rate - 1.0) < 0.001)
+                                return 1.09;
+                                
+                            return rate;
+                        });
+
+                    foreach (var proj in orderedProjections)
                     {
                         sb.AppendLine($"    {proj.Formula,-14}: {proj.Population:N6}");
                         sb.AppendLine($"        - Base MP       : {proj.BaseMp:N6}");

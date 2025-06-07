@@ -139,7 +139,10 @@ namespace PopulationCalculator.Services
         {
             var projections = new List<PostWarProjection>();
             
-            foreach (var formula in PopulationFormulas.PostApocFormulas)
+            // Convert to list to maintain order and avoid multiple enumeration
+            var orderedFormulas = PopulationFormulas.PostApocFormulas.ToList();
+            
+            foreach (var formula in orderedFormulas)
             {
                 var population = CalculatePostWarPopulation(
                     postFyocPop,
@@ -147,7 +150,7 @@ namespace PopulationCalculator.Services
                     preWarRate,
                     periods);
                     
-                if (!double.IsNaN(population)) // Skip duplicate rates
+                if (!double.IsNaN(population))
                 {
                     var projection = new PostWarProjection
                     {
@@ -157,16 +160,9 @@ namespace PopulationCalculator.Services
                     };
                     
                     // Fix MP calculations:
-                    // 1. Divide Base MP by 1000 to get more manageable numbers
                     projection.BaseMp = projection.BaseMp / 1000;
-                    
-                    // 2. On-map MP is just the integer part
                     projection.OnMapMp = (int)Math.Floor(projection.BaseMp);
-                    
-                    // 3. Off-map MP is the decimal part only
                     projection.OffMapMp = projection.BaseMp - projection.OnMapMp;
-                    
-                    // 4. Daily off-map is off-map divided by 100
                     projection.DailyOffMap = projection.OffMapMp / 100;
                     
                     projections.Add(projection);
