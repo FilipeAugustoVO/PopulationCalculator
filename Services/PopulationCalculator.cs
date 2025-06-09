@@ -268,23 +268,36 @@ namespace PopulationCalculator.Services
             List<(int years, double rateModifier, double popChange)> periods)
         {
             double population = initialPop;
-            double effectiveRate = growthRate;
+            double effectiveRate;
             
-            // Handle negative growth rates (-12%, -25%, -50%, -75%)
+            // Handle negative modifiers (-12%, -25%, -50%, -75%)
             if (growthRate < 0)
             {
-                // For negative rates, we want to directly use the percentage reduction
-                // e.g., -12% means multiply by 0.88 per year
-                effectiveRate = growthRate / 100.0;
+                // growthRate comes in as -0.12, -0.25, -0.50, -0.75 (already in decimal form)
+                double reduction = Math.Abs(growthRate * 100.0); // Convert to percentage (12, 25, 50, 75)
+                double keepPercent = (100.0 - reduction) / 100.0; // Convert to decimal (0.88, 0.75, 0.50, 0.25)
+                effectiveRate = (preWarRate * keepPercent) / 100.0;
+                
+                LogDebug($"\nNegative modifier calculation:");
+                LogDebug($"Pre-war rate: {preWarRate:F5}%");
+                LogDebug($"Keep percent: {keepPercent:F4} (reducing by {reduction:F0}%)");
+                LogDebug($"Final rate: {effectiveRate:F6}");
             }
-            // For positive rates, use them directly as they're already in decimal form
+            else
+            {
+                effectiveRate = growthRate;
+            }
             
-            // Calculate population growth/decline
+            LogDebug($"\nPost-war calculation:");
+            LogDebug($"Initial population: {population:N0}");
+            
             foreach (var (years, modifier, change) in periods)
             {
-                var adjustedRate = effectiveRate * modifier;
-                population *= Math.Pow(1 + adjustedRate, years);
+                var yearlyRate = effectiveRate * modifier;
+                population *= Math.Pow(1 + yearlyRate, years);
                 population += change;
+                
+                LogDebug($"After {years} years at {yearlyRate:P4}: {population:N0}");
             }
             
             return population;
