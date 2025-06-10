@@ -183,10 +183,12 @@ namespace PopulationCalculator.Services
             
             stats.FinalPopulation = CalculateGhoulPopulation(
                 stats.InitialPopulation,
-                -0.005, // -0.5% decline rate
+                -0.001, // -0.1% decline rate (changed from -0.005)
                 periods);
                 
-            stats.OffMapMp = Math.Floor(stats.FinalPopulation / 10);
+            // Apply same MP calculation as regular populations
+            double baseMp = stats.FinalPopulation / 10;
+            stats.OffMapMp = Math.Floor(baseMp / 1000);
             stats.DailyOffMap = stats.OffMapMp / 100;
             
             return stats;
