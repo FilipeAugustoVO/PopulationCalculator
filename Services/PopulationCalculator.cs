@@ -93,37 +93,37 @@ namespace PopulationCalculator.Services
                 if (result.IsValid)
                 {
                     LogDebug($"Found valid population: {validatedPop:N0}\n");
-                    
+
                     // KEOFF calculations
                     decimal preWarPopDecimal = ConvertToDecimal(validatedPop, "Pre-war population");
                     var keoffRate = CalculateKeoffRate(preWarPopDecimal);
                     decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
-                    
+
                     result.KeoffRate = (double)keoffRate;
                     result.SurvivingPopulation = (double)survivingPop;
-                    
+
                     // FYOC calculations
                     double fyocLossRate = CalculateFyocLossRate((double)survivingPop);
                     result.FyocLossRate = fyocLossRate;
                     result.PostFyocPopulation = (double)survivingPop * (1 - fyocLossRate);
-                    
+
                     // Calculate and store post-war projections with MP stats
                     var postWarResults = CalculateAllPostWarProjections(
-                        result.PostFyocPopulation, 
+                        result.PostFyocPopulation,
                         formula.Value,
                         postWarPeriods ?? DefaultPostWarPeriods);
-                        
+
                     result.PostWarProjections = postWarResults;
-                    
+
                     // Calculate MP statistics
                     var baseMps = postWarResults.Select(p => p.BaseMp).ToList();
                     result.MpStatsAverage = baseMps.Average();
                     result.MpStatsMedian = CalculateMedian(baseMps);
-                    
+
                     // Calculate ghoul stats
                     result.GhoulStats = CalculateGhoulStatistics(
-                        result.PostFyocPopulation,
-                        ghoulPeriods ?? DefaultGhoulPeriods);
+                        result.SurvivingPopulation,
+                        ghoulPeriods ?? DefaultGhoulPeriods);                        
                 }
                 
                 results.Add(result);
@@ -173,12 +173,12 @@ namespace PopulationCalculator.Services
         }
 
         private GhoulStats CalculateGhoulStatistics(
-            double postFyocPop,
+            double SurvivingPopulation,
             List<(int years, double rateModifier, double popChange)> periods)
         {
             var stats = new GhoulStats
             {
-                InitialPopulation = postFyocPop * 0.50 // 50% become ghouls
+                InitialPopulation = SurvivingPopulation * 0.50 // 50% become ghouls
             };
             
             stats.FinalPopulation = CalculateGhoulPopulation(
