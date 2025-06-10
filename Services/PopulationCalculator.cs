@@ -178,7 +178,7 @@ namespace PopulationCalculator.Services
         {
             var stats = new GhoulStats
             {
-                InitialPopulation = postFyocPop * 0.50 // 15% become ghouls
+                InitialPopulation = postFyocPop * 0.50 // 50% become ghouls
             };
             
             stats.FinalPopulation = CalculateGhoulPopulation(

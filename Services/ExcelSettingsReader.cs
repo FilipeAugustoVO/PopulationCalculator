@@ -199,16 +199,10 @@ namespace PopulationCalculator.Services
                 throw new InvalidOperationException(
                     $"Invalid growth rate for {periodName} in {stateName}: {rate}");
             
-            // Debug logging to track value transformations
-            Console.WriteLine($"State: {stateName}, Period: {periodName}");
-            Console.WriteLine($"Raw rate from Excel: {rate}");
-            
             // If we got a number like 53800 instead of 5.38, fix it
             if (Math.Abs(rate) > 100)
             {
-                var adjustedRate = rate / 10000;
-                Console.WriteLine($"Adjusted rate: {adjustedRate}");
-                return adjustedRate;
+                return rate / 10000;
             }
             
             return rate;

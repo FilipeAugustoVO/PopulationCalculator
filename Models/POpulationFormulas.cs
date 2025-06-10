@@ -20,9 +20,6 @@ public static class PopulationFormulas
         double rate5565, double rate5070, double rate6070,
         double rate7080)
     {
-        // Debug logging to see actual values
-        Console.WriteLine($"46-60 rate received: {rate4660}");
-        
         var historicalRates = new Dictionary<string, double>
         {
             { "46-60 formula", rate4660 },  // Should be 5.38, not 53800
