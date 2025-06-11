@@ -188,7 +188,7 @@ namespace PopulationCalculator.Services
                 
             // Apply same MP calculation as regular populations
             double baseMp = stats.FinalPopulation / 10;
-            stats.OffMapMp = Math.Floor(baseMp / 1000);
+            stats.OffMapMp = baseMp / 1000;
             stats.DailyOffMap = stats.OffMapMp / 100;
             
             return stats;
