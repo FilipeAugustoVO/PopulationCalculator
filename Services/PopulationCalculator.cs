@@ -4,6 +4,7 @@ using System.Linq;
 using System.Globalization;
 using PopulationCalculator.Models;
 using System.IO;
+using Microsoft.VisualBasic;
 
 namespace PopulationCalculator.Services
 {
@@ -68,15 +69,15 @@ namespace PopulationCalculator.Services
         {
             LogDebug($"\n=== Starting calculations for {stateName} ===\n");
             LogDebug($"Initial Population (1945): {InitialPopulation1945:N0}\n");
-            
+
             var results = new List<PopulationResult>();
-            
+
             foreach (var formula in PopulationFormulas.PreWarFormulas)
             {
                 LogDebug($"\nTrying {formula.Key}:\n");
-                
-                var result = new PopulationResult 
-                { 
+
+                var result = new PopulationResult
+                {
                     StateName = stateName,
                     Formula = formula.Key
                 };
@@ -84,7 +85,7 @@ namespace PopulationCalculator.Services
                 // Calculate pre-war population
                 double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, formula.Value, preWarPeriods ?? DefaultPreWarPeriods);
                 result.Population = preWarPop;
-                
+
                 // Validate population
                 var (validatedPop, validationStatus) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
                 result.ValidationStatus = validationStatus;
@@ -123,12 +124,12 @@ namespace PopulationCalculator.Services
                     // Calculate ghoul stats
                     result.GhoulStats = CalculateGhoulStatistics(
                         result.SurvivingPopulation,
-                        ghoulPeriods ?? DefaultGhoulPeriods);                        
+                        ghoulPeriods ?? DefaultGhoulPeriods);
                 }
-                
+
                 results.Add(result);
             }
-            
+           
             return results;
         }
 
@@ -275,10 +276,9 @@ namespace PopulationCalculator.Services
             // Handle negative modifiers (-12%, -25%, -50%, -75%)
             if (growthRate < 0)
             {
-                // growthRate comes in as -0.12, -0.25, -0.50, -0.75 (already in decimal form)
-                double reduction = Math.Abs(growthRate * 100.0); // Convert to percentage (12, 25, 50, 75)
-                double keepPercent = (100.0 - reduction) / 100.0; // Convert to decimal (0.88, 0.75, 0.50, 0.25)
-                effectiveRate = (preWarRate * keepPercent) / 100.0;
+                double reduction = Math.Abs(growthRate * 100.0);
+                double keepPercent = (100.0 - reduction) / 100.0;
+                effectiveRate = preWarRate * keepPercent; // Removed /100.0 since preWarRate is already in proper form
                 
                 LogDebug($"\nNegative modifier calculation:");
                 LogDebug($"Pre-war rate: {preWarRate:F5}%");
