@@ -4,6 +4,7 @@ using System.Linq;
 using System.Globalization;
 using PopulationCalculator.Models;
 using System.IO;
+using Microsoft.VisualBasic;
 
 namespace PopulationCalculator.Services
 {
@@ -68,15 +69,15 @@ namespace PopulationCalculator.Services
         {
             LogDebug($"\n=== Starting calculations for {stateName} ===\n");
             LogDebug($"Initial Population (1945): {InitialPopulation1945:N0}\n");
-            
+
             var results = new List<PopulationResult>();
-            
+
             foreach (var formula in PopulationFormulas.PreWarFormulas)
             {
                 LogDebug($"\nTrying {formula.Key}:\n");
-                
-                var result = new PopulationResult 
-                { 
+
+                var result = new PopulationResult
+                {
                     StateName = stateName,
                     Formula = formula.Key
                 };
@@ -84,7 +85,7 @@ namespace PopulationCalculator.Services
                 // Calculate pre-war population
                 double preWarPop = CalculatePreWarPopulation(InitialPopulation1945, formula.Value, preWarPeriods ?? DefaultPreWarPeriods);
                 result.Population = preWarPop;
-                
+
                 // Validate population
                 var (validatedPop, validationStatus) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
                 result.ValidationStatus = validationStatus;
@@ -123,12 +124,25 @@ namespace PopulationCalculator.Services
                     // Calculate ghoul stats
                     result.GhoulStats = CalculateGhoulStatistics(
                         result.SurvivingPopulation,
-                        ghoulPeriods ?? DefaultGhoulPeriods);                        
+                        ghoulPeriods ?? DefaultGhoulPeriods);
                 }
-                
+
                 results.Add(result);
             }
-            
+           
+            // If no valid results, add Red Rule calculation
+            bool allInvalid = results.All(r => !r.IsValid);
+            if (allInvalid)
+            {
+                var redRuleResult = CalculateRedRulePopulation(
+                    stateName,
+                    preWarPeriods,
+                    postWarPeriods,
+                    ghoulPeriods
+                );
+                results.Add(redRuleResult);
+            }
+
             return results;
         }
 
@@ -275,10 +289,9 @@ namespace PopulationCalculator.Services
             // Handle negative modifiers (-12%, -25%, -50%, -75%)
             if (growthRate < 0)
             {
-                // growthRate comes in as -0.12, -0.25, -0.50, -0.75 (already in decimal form)
-                double reduction = Math.Abs(growthRate * 100.0); // Convert to percentage (12, 25, 50, 75)
-                double keepPercent = (100.0 - reduction) / 100.0; // Convert to decimal (0.88, 0.75, 0.50, 0.25)
-                effectiveRate = (preWarRate * keepPercent) / 100.0;
+                double reduction = Math.Abs(growthRate * 100.0);
+                double keepPercent = (100.0 - reduction) / 100.0;
+                effectiveRate = preWarRate * keepPercent; // Removed /100.0 since preWarRate is already in proper form
                 
                 LogDebug($"\nNegative modifier calculation:");
                 LogDebug($"Pre-war rate: {preWarRate:F5}%");
@@ -398,19 +411,38 @@ namespace PopulationCalculator.Services
                 return (0, $"FAILED Alaska Rule: Pre-Sino-American War population {preSinoWarPop:N0} exceeds 5x OTL Max ({alaskaMaxAllowed:N0})");
             }
 
-            // Normal Red Rule validation for all other states
+            // Normal validation with Red Rule
+            double maxAllowed = OtlMaxPopulation * 5;
+            
             if (preWarPop <= OtlMaxPopulation)
             {
                 return (0, $"FAILED Rule 1: Population {preWarPop:N0} must be larger than OTL Max {OtlMaxPopulation:N0}");
             }
 
-            double maxAllowed = OtlMaxPopulation * 5;
             if (preWarPop <= maxAllowed)
             {
-                return (preWarPop, $"PASSED: Population {preWarPop:N0} is within acceptable range ({OtlMaxPopulation:N0} to {maxAllowed:N0})");
+                return (preWarPop, $"PASSED: Population {preWarPop:N0} is within acceptable range");
             }
 
-            return (0, $"FAILED Rule 2: Population {preWarPop:N0} exceeds 5x OTL Max ({maxAllowed:N0})");
+            // Red Rule implementation
+            if (allPreWarPops.Count > 0 && allPreWarPops.All(p => p > maxAllowed))
+            {
+                // Try multipliers from 6 to 10
+                for (int multiplier = 6; multiplier <= 10; multiplier++)
+                {
+                    double currentMax = OtlMaxPopulation * multiplier;
+                    if (preWarPop <= currentMax)
+                    {
+                        return (preWarPop, $"PASSED via Red Rule: Using x{multiplier} multiplier");
+                    }
+                }
+
+                // If we get here, even x10 failed - use Red Rule corollary
+                double corollaryPop = OtlMaxPopulation * 5;
+                return (corollaryPop, $"PASSED via Red Rule Corollary: Using 5x OTL Max ({corollaryPop:N0})");
+            }
+
+            return (0, $"FAILED: Population {preWarPop:N0} exceeds maximum allowed {maxAllowed:N0}");
         }
 
         private decimal CalculateMedian(List<decimal> values)
@@ -470,6 +502,158 @@ namespace PopulationCalculator.Services
                 return (T)((a + b) / 2);
             }
             return sortedValues[count / 2];
+        }
+
+        private PopulationResult CalculateRedRulePopulation(
+            string stateName,
+            List<(int years, double rateModifier)>? preWarPeriods = null,
+            List<(int years, double rateModifier, double popChange)>? postWarPeriods = null,
+            List<(int years, double rateModifier, double popChange)>? ghoulPeriods = null)
+        {
+            LogDebug("\n=== Red Rule Calculation Start ===");
+            LogDebug($"State: {stateName}");
+            LogDebug($"OTL Max Population: {OtlMaxPopulation:N0}");
+
+            // Always use the x5 corollary
+            double redRulePopulation = OtlMaxPopulation * 5;
+            string validationStatus = "PASSED via Red Rule: Using 5x OTL Max";
+
+            return CreatePopulationResult(
+                redRulePopulation,
+                validationStatus,
+                stateName,
+                preWarPeriods,
+                postWarPeriods,
+                ghoulPeriods);
+        }
+
+        private PopulationResult CreatePopulationResult(
+            double population,
+            string validationStatus,
+            string stateName,
+            List<(int years, double rateModifier)>? preWarPeriods,
+            List<(int years, double rateModifier, double popChange)>? postWarPeriods,
+            List<(int years, double rateModifier, double popChange)>? ghoulPeriods)
+        {
+            var result = new PopulationResult 
+            { 
+                Formula = "Red Rule",
+                Population = population,
+                ValidationStatus = validationStatus,
+                IsValid = true
+            };
+
+            // Calculate growth rate from pre-war progression
+            int totalYears = preWarPeriods?.Sum(p => p.years) ?? DefaultPreWarPeriods.Sum(p => p.years);
+            double growthRate = Math.Pow(population / InitialPopulation1945, 1.0 / totalYears) - 1;
+            
+            LogDebug($"Growth rate calculation:");
+            LogDebug($"Initial pop (1945): {InitialPopulation1945:N0}");
+            LogDebug($"Final pop: {population:N0}");
+            LogDebug($"Years: {totalYears}");
+            LogDebug($"Growth rate: {growthRate:P4}");
+
+            // KEOFF calculations
+            decimal preWarPopDecimal = ConvertToDecimal(population, "Red Rule population");
+            var keoffRate = CalculateKeoffRate(preWarPopDecimal);
+            decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
+
+            result.KeoffRate = (double)keoffRate;
+            result.SurvivingPopulation = (double)survivingPop;
+
+            // FYOC calculations
+            double fyocLossRate = CalculateFyocLossRate(result.SurvivingPopulation);
+            result.FyocLossRate = fyocLossRate;
+            result.PostFyocPopulation = result.SurvivingPopulation * (1 - fyocLossRate);
+
+            // Post-war projections using calculated growth rate
+            result.PostWarProjections = CalculateAllPostWarProjections(
+                result.PostFyocPopulation,
+                growthRate,
+                postWarPeriods ?? DefaultPostWarPeriods);
+
+            // MP Statistics
+            var baseMps = result.PostWarProjections.Select(p => p.BaseMp).ToList();
+            result.MpStatsAverage = baseMps.Average();
+            result.MpStatsMedian = CalculateMedian(baseMps);
+
+            // Ghoul calculations
+            result.GhoulStats = CalculateGhoulStatistics(
+                result.SurvivingPopulation,
+                ghoulPeriods ?? DefaultGhoulPeriods);
+
+            return result;
+        }
+
+        private PopulationResult CalculateRedRule(
+            double otlMaxPopulation,
+            double initialPopulation1945,
+            List<(int years, double rateModifier)> preWarPeriods,
+            List<(int years, double rateModifier, double popChange)> postWarPeriods,
+            List<(int years, double rateModifier, double popChange)> ghoulPeriods)
+        {
+            double redRulePopulation = 0;
+            string validationStatus = "";
+
+            // Try multipliers x6 to x10
+            for (int multiplier = 6; multiplier <= 10; multiplier++)
+            {
+                double candidatePop = otlMaxPopulation * multiplier;
+                var (validatedPop, status) = ValidatePreWarPopulation(candidatePop, "Red Rule", new List<double>());
+                if (validatedPop > 0)
+                {
+                    redRulePopulation = validatedPop;
+                    validationStatus = $"PASSED via Red Rule: Using x{multiplier} multiplier";
+                    break;
+                }
+            }
+
+            // If none worked, use the corollary
+            if (redRulePopulation == 0)
+            {
+                redRulePopulation = otlMaxPopulation * 5;
+                validationStatus = "PASSED via Red Rule Corollary: Using 5x OTL Max";
+            }
+
+            // Calculate average growth rate from 1945 to redRulePopulation
+            int totalYears = preWarPeriods.Sum(p => p.years);
+            double growthRate = Math.Pow(redRulePopulation / initialPopulation1945, 1.0 / totalYears) - 1;
+
+            var result = new PopulationResult
+            {
+                Formula = "Red Rule",
+                Population = redRulePopulation,
+                ValidationStatus = validationStatus,
+                IsValid = true
+            };
+
+            // Continue with your existing calculation pipeline,
+            // passing growthRate as an argument where needed:
+            result.PostWarProjections = CalculateAllPostWarProjections(
+                result.PostFyocPopulation,
+                growthRate,
+                postWarPeriods
+            );
+
+            // KEOFF calculations
+            decimal preWarPopDecimal = ConvertToDecimal(redRulePopulation, "Red Rule population");
+            var keoffRate = CalculateKeoffRate(preWarPopDecimal);
+            decimal survivingPop = preWarPopDecimal * (1M - keoffRate);
+
+            result.KeoffRate = (double)keoffRate;
+            result.SurvivingPopulation = (double)survivingPop;
+
+            // FYOC calculations
+            double fyocLossRate = CalculateFyocLossRate(result.SurvivingPopulation);
+            result.FyocLossRate = fyocLossRate;
+            result.PostFyocPopulation = result.SurvivingPopulation * (1 - fyocLossRate);
+
+            // Ghoul calculations
+            result.GhoulStats = CalculateGhoulStatistics(
+                result.SurvivingPopulation,
+                ghoulPeriods ?? DefaultGhoulPeriods);
+
+            return result;
         }
     }
 }
