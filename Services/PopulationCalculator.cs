@@ -427,19 +427,9 @@ namespace PopulationCalculator.Services
             // Red Rule implementation
             if (allPreWarPops.Count > 0 && allPreWarPops.All(p => p > maxAllowed))
             {
-                // Try multipliers from 6 to 10
-                for (int multiplier = 6; multiplier <= 10; multiplier++)
-                {
-                    double currentMax = OtlMaxPopulation * multiplier;
-                    if (preWarPop <= currentMax)
-                    {
-                        return (preWarPop, $"PASSED via Red Rule: Using x{multiplier} multiplier");
-                    }
-                }
-
-                // If we get here, even x10 failed - use Red Rule corollary
+                // Always use the x5 corollary now
                 double corollaryPop = OtlMaxPopulation * 5;
-                return (corollaryPop, $"PASSED via Red Rule Corollary: Using 5x OTL Max ({corollaryPop:N0})");
+                return (corollaryPop, $"PASSED via Red Rule: Using 5x OTL Max ({corollaryPop:N0})");
             }
 
             return (0, $"FAILED: Population {preWarPop:N0} exceeds maximum allowed {maxAllowed:N0}");
