@@ -87,7 +87,8 @@ namespace PopulationCalculator.Services
                 result.Population = preWarPop;
 
                 // Validate population
-                var (validatedPop, validationStatus) = ValidatePreWarPopulation(preWarPop, stateName, new List<double>());
+                var (validatedPop, validationStatus) = ValidatePreWarPopulation(
+                    preWarPop, stateName, new List<double>(), formula.Value);
                 result.ValidationStatus = validationStatus;
                 result.IsValid = validatedPop > 0;
 
@@ -376,7 +377,9 @@ namespace PopulationCalculator.Services
         private (double validatedPopulation, string reason) ValidatePreWarPopulation(
             double preWarPop, 
             string stateName,
-            List<double> allPreWarPops)
+            List<double> allPreWarPops,
+            double currentGrowthRate // <-- Add this parameter!
+)
         {
             // Panama Canal Zone Rule: Use 10x 1945 population as max
             if (stateName == "Panama Canal Zone")
@@ -393,10 +396,11 @@ namespace PopulationCalculator.Services
             // Alaska Rule: Check population before Sino-American War losses
             if (stateName == "Alaska")
             {
-                // Calculate pre-Sino-American War population (after first 121 years)
-                double preWarGrowthRate = PopulationFormulas.PreWarFormulas.First().Value; // Use first formula's rate
+                // Calculate pre-Sino-American War population (after first 121 years) using the current formula's growth rate
+                // You need to pass the current formula's growth rate to this function!
+                double preWarGrowthRate = currentGrowthRate; // Use the parameter you pass in
                 double preSinoWarPop = InitialPopulation1945 * Math.Pow(1 + preWarGrowthRate, 121);
-                
+
                 if (preSinoWarPop <= OtlMaxPopulation)
                 {
                     return (0, $"FAILED Alaska Rule: Pre-Sino-American War population {preSinoWarPop:N0} must be larger than OTL Max {OtlMaxPopulation:N0}");
@@ -429,7 +433,8 @@ namespace PopulationCalculator.Services
             {
                 // Always use the x5 corollary now
                 double corollaryPop = OtlMaxPopulation * 5;
-                return (corollaryPop, $"PASSED via Red Rule: Using 5x OTL Max ({corollaryPop:N0})");
+                var (validatedPop, status) = ValidatePreWarPopulation(corollaryPop, "Red Rule", new List<double>(), 0);
+                return (validatedPop, $"PASSED via Red Rule: Using 5x OTL Max ({corollaryPop:N0})");
             }
 
             return (0, $"FAILED: Population {preWarPop:N0} exceeds maximum allowed {maxAllowed:N0}");
@@ -589,7 +594,7 @@ namespace PopulationCalculator.Services
             for (int multiplier = 6; multiplier <= 10; multiplier++)
             {
                 double candidatePop = otlMaxPopulation * multiplier;
-                var (validatedPop, status) = ValidatePreWarPopulation(candidatePop, "Red Rule", new List<double>());
+                var (validatedPop, status) = ValidatePreWarPopulation(candidatePop, "Red Rule", new List<double>(), 0);
                 if (validatedPop > 0)
                 {
                     redRulePopulation = validatedPop;
